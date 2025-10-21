@@ -106,6 +106,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'linya-vision.html'));
 });
 
+// 確保所有路由都指向皮皮應用
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'linya-vision.html'));
+});
+
 // 啟動服務器
 app.listen(PORT, () => {
     console.log(`🚀 皮皮 InnerPal 服務器運行在端口 ${PORT}`);
