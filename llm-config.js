@@ -1,5 +1,5 @@
 // LLM配置和API集成
-export class LLMConfig {
+class LLMConfig {
     constructor() {
         this.apiKey = null;
         this.baseUrl = 'http://localhost:3001/api'; // 本地代理API
@@ -37,7 +37,7 @@ export class LLMConfig {
     }
 }
 
-export class LLMService {
+class LLMService {
     constructor(config) {
         this.config = config;
         this.conversationHistory = [];
@@ -107,5 +107,5 @@ export class LLMService {
 }
 
 // 創建全局實例
-export const llmConfig = new LLMConfig();
-export const llmService = new LLMService(llmConfig);
+window.llmConfig = new LLMConfig();
+window.llmService = new LLMService(window.llmConfig);

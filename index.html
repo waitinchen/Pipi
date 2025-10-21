@@ -623,6 +623,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🌱 皮皮 InnerPal 語氣靈已啟動');
             
+            // 初始化LLM配置
+            if (window.llmConfig) {
+                window.llmConfig.loadApiKey();
+            }
+            
             // 設置LLM名稱
             const savedName = localStorage.getItem('llmCustomName');
             if (savedName) {
