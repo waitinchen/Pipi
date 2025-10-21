@@ -101,15 +101,7 @@ app.post('/api/claude', async (req, res) => {
     }
 });
 
-// 提供靜態文件
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'linya-vision.html'));
-});
-
-// 確保所有路由都指向皮皮應用
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'linya-vision.html'));
-});
+// 靜態文件由 express.static 自動處理
 
 // 啟動服務器
 app.listen(PORT, () => {

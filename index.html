@@ -5,45 +5,669 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>皮皮 InnerPal 語氣靈</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .llm-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .llm-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Microsoft JhengHei', sans-serif;
+            position: relative;
+            cursor: pointer;
+            animation: llmRotate 10s linear infinite;
         }
-        .loading {
-            text-align: center;
+
+        .llm-avatar::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, #fff, transparent);
+            animation: llmPulse 2s ease-in-out infinite;
+        }
+
+        .llm-sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .llm-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: llmSparkleRotate1 3s linear infinite;
+        }
+
+        .llm-sparkle:nth-child(1) { top: 10%; left: 50%; animation: llmSparkleRotate1 3s linear infinite; }
+        .llm-sparkle:nth-child(2) { top: 20%; left: 80%; animation: llmSparkleRotate2 3.5s linear infinite; }
+        .llm-sparkle:nth-child(3) { top: 50%; left: 90%; animation: llmSparkleRotate3 4s linear infinite; }
+        .llm-sparkle:nth-child(4) { top: 80%; left: 80%; animation: llmSparkleRotate4 4.5s linear infinite; }
+        .llm-sparkle:nth-child(5) { top: 90%; left: 50%; animation: llmSparkleRotate5 5s linear infinite; }
+        .llm-sparkle:nth-child(6) { top: 80%; left: 20%; animation: llmSparkleRotate6 3.2s linear infinite; }
+        .llm-sparkle:nth-child(7) { top: 50%; left: 10%; animation: llmSparkleRotate7 3.8s linear infinite; }
+        .llm-sparkle:nth-child(8) { top: 20%; left: 20%; animation: llmSparkleRotate8 4.2s linear infinite; }
+        .llm-sparkle:nth-child(9) { top: 50%; left: 50%; animation: llmSparkleRotate9 4.8s linear infinite; }
+
+        .llm-name {
             color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .spinner {
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
             width: 50px;
             height: 50px;
-            border: 5px solid rgba(255,255,255,0.3);
-            border-top: 5px solid white;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .user-name {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.user {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            align-self: flex-end;
+            color: white;
+        }
+
+        .message.llm {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            align-self: flex-start;
+            color: white;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+            width: 95%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 16px;
+            padding: 10px 15px;
+        }
+
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+        }
+
+        .pipi-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            pointer-events: none;
+            z-index: 1000;
+            width: 95%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pipi-mini {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            animation: pipiHorizontalMove 12s ease-in-out infinite;
+            z-index: 1000;
+        }
+
+        .pipi-face {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            position: relative;
+        }
+
+        .pipi-eyes {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pipiEyeBlink 3s ease-in-out infinite;
+        }
+
+        .pipi-speech-bubble {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            max-width: 200px;
+            word-wrap: break-word;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .pipi-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.9);
+        }
+
+        .name-edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .name-edit-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .name-edit-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .name-edit-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .name-edit-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .name-edit-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .name-edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .name-edit-btn:not(.cancel) {
+            background: #667eea;
+            color: white;
+        }
+
+        .name-edit-btn.cancel {
+            background: #ddd;
+            color: #333;
+        }
+
+        @keyframes llmRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes llmPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes llmSparkleRotate1 {
+            from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate2 {
+            from { transform: rotate(0deg) translateX(18px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(18px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate3 {
+            from { transform: rotate(0deg) translateX(16px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(16px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate4 {
+            from { transform: rotate(0deg) translateX(14px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate5 {
+            from { transform: rotate(0deg) translateX(12px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(12px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate6 {
+            from { transform: rotate(0deg) translateX(10px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(10px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate7 {
+            from { transform: rotate(0deg) translateX(8px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(8px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate8 {
+            from { transform: rotate(0deg) translateX(6px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(6px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate9 {
+            from { transform: rotate(0deg) translateX(4px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(4px) rotate(-360deg); }
+        }
+
+        @keyframes pipiHorizontalMove {
+            0%, 100% { transform: translateX(0); }
+            20%, 60%, 100% { transform: translateX(calc(100% - 50px)); }
+        }
+
+        @keyframes pipiEyeBlink {
+            0%, 90%, 100% {
+                transform: translate(-50%, -50%) scaleY(1);
+                opacity: 1;
+            }
+            92%, 98% {
+                transform: translate(-50%, -50%) scaleY(0.1);
+                opacity: 0.3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="loading">
-        <h1>🐾 皮皮 InnerPal 語氣靈</h1>
-        <div class="spinner"></div>
-        <p>正在載入中...</p>
+    <div class="container">
+        <div class="header">
+            <div class="llm-info">
+                <div class="llm-avatar" id="llmAvatar" onclick="editLlmName()">
+                    <div class="llm-sparkles">
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                    </div>
+                </div>
+                <div class="llm-name" id="llmName" onclick="editLlmName()">LINYA</div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">用戶</div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+        </div>
+        
+        <div class="input-container">
+            <input type="text" class="message-input" id="messageInput" placeholder="輸入訊息...">
+            <button class="send-button" onclick="sendMessage()">✈️</button>
+        </div>
     </div>
     
+    <div class="pipi-container">
+        <div class="pipi-mini" id="pipiMini" onclick="togglePipiReaction()">
+            <div class="pipi-face">
+                ʕ • ᴥ • ʔ
+                <div class="pipi-eyes">
+                    <div class="pipi-eye"></div>
+                    <div class="pipi-eye"></div>
+                </div>
+            </div>
+        </div>
+        <div class="pipi-speech-bubble" id="pipiSpeechBubble">
+            點擊我試試看！
+        </div>
+    </div>
+    
+    <div class="name-edit-modal" id="nameEditModal">
+        <div class="name-edit-content">
+            <div class="name-edit-title">修改語氣靈名稱</div>
+            <input type="text" class="name-edit-input" id="nameEditInput" placeholder="輸入新名稱（最多5個中文字）" maxlength="5">
+            <div class="name-edit-buttons">
+                <button class="name-edit-btn" onclick="saveLlmName()">保存</button>
+                <button class="name-edit-btn cancel" onclick="cancelNameEdit()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="llm-config.js"></script>
     <script>
-        // 立即重定向到皮皮應用
-        window.location.href = '/linya-vision.html';
+        // 全局變量
+        let isProcessing = false; // 防止重複處理
+        
+        // 真實對話功能
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            isProcessing = true; // 設置處理中標記
+            
+            // 添加用戶消息到聊天框
+            addMessageToChat('user', message);
+            input.value = '';
+            
+            // 檢查LLM是否已配置
+            if (!window.llmConfig.isConfigured()) {
+                addMessageToChat('llm', '請先設置API密鑰才能開始對話。點擊右上角狀態指示器進行設置。');
+                isProcessing = false;
+                return;
+            }
+            
+            // 顯示正在輸入狀態
+            const typingMessage = addMessageToChat('llm', '語氣靈正在思考...', true);
+            
+            try {
+                // 發送消息到LLM（只發送當前消息，不包含歷史）
+                const response = await window.llmService.sendMessage(message);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 添加LLM回應（確保不重複）
+                addMessageToChat('llm', response);
+                
+                // 觸發皮皮反應
+                triggerPipiReaction('message_received');
+                
+            } catch (error) {
+                console.error('LLM請求失敗:', error);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 不顯示任何錯誤訊息
+            } finally {
+                // 重置處理標記
+                isProcessing = false;
+            }
+        }
+        
+        function addMessageToChat(role, content, isTyping = false) {
+            const chatBox = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.textContent = content;
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            return messageDiv;
+        }
+        
+        // 皮皮反應
+        function triggerPipiReaction(type) {
+            const pipi = document.getElementById('pipiMini');
+            const bubble = document.getElementById('pipiSpeechBubble');
+            
+            if (type === 'message_received') {
+                pipi.style.transform = 'scale(1.2)';
+                bubble.textContent = '收到消息了！';
+                bubble.style.opacity = '1';
+                
+                setTimeout(() => {
+                    pipi.style.transform = 'scale(1)';
+                    bubble.style.opacity = '0';
+                }, 2000);
+            }
+        }
+        
+        function togglePipiReaction() {
+            const bubble = document.getElementById('pipiSpeechBubble');
+            const messages = [
+                '你好！我是皮皮！',
+                '點擊我很好玩對吧？',
+                '我喜歡和你聊天！',
+                '今天天氣真好！',
+                '你想和我說什麼嗎？'
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            bubble.textContent = randomMessage;
+            bubble.style.opacity = '1';
+            
+            setTimeout(() => {
+                bubble.style.opacity = '0';
+            }, 3000);
+        }
+        
+        // LLM名稱編輯
+        function editLlmName() {
+            const modal = document.getElementById('nameEditModal');
+            const input = document.getElementById('nameEditInput');
+            const currentName = document.getElementById('llmName').textContent;
+            
+            input.value = currentName;
+            modal.classList.add('show');
+        }
+        
+        function saveLlmName() {
+            const input = document.getElementById('nameEditInput');
+            const newName = input.value.trim();
+            
+            if (newName && newName.length <= 5) {
+                document.getElementById('llmName').textContent = newName;
+                localStorage.setItem('llmCustomName', newName);
+                cancelNameEdit();
+            } else {
+                alert('請輸入1-5個中文字符');
+            }
+        }
+        
+        function cancelNameEdit() {
+            const modal = document.getElementById('nameEditModal');
+            modal.classList.remove('show');
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌱 皮皮 InnerPal 語氣靈已啟動');
+            
+            // 設置LLM名稱
+            const savedName = localStorage.getItem('llmCustomName');
+            if (savedName) {
+                document.getElementById('llmName').textContent = savedName;
+            }
+            
+            // 按Enter發送訊息
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // 定期更新氣泡位置，確保跟隨皮皮
+            setInterval(updateBubblePosition, 100);
+            
+            // 歡迎訊息
+            setTimeout(() => {
+                showPipiSpeechBubble();
+            }, 2000);
+        });
+        
+        function updateBubblePosition() {
+            const bubble = document.getElementById('pipiSpeechBubble');
+            const pipiMini = document.getElementById('pipiMini');
+
+            if (bubble && pipiMini) {
+                const pipiRect = pipiMini.getBoundingClientRect();
+                const containerRect = pipiMini.parentElement.getBoundingClientRect();
+                const relativeX = pipiRect.left - containerRect.left + (pipiRect.width / 2);
+                bubble.style.left = relativeX + 'px';
+                bubble.style.transform = 'translateX(-50%)';
+                bubble.style.bottom = '50px';
+            }
+        }
+        
+        function showPipiSpeechBubble() {
+            const bubble = document.getElementById('pipiSpeechBubble');
+            bubble.textContent = '歡迎來到皮皮的世界！';
+            bubble.style.opacity = '1';
+            
+            setTimeout(() => {
+                bubble.style.opacity = '0';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
