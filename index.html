@@ -54,6 +54,42 @@
             animation: llmRotate 10s linear infinite;
         }
 
+        .llm-avatar::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, #fff, transparent);
+            animation: llmPulse 2s ease-in-out infinite;
+        }
+
+        .llm-sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .llm-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: llmSparkleRotate1 3s linear infinite;
+        }
+
+        .llm-sparkle:nth-child(1) { top: 10%; left: 50%; animation: llmSparkleRotate1 3s linear infinite; }
+        .llm-sparkle:nth-child(2) { top: 20%; left: 80%; animation: llmSparkleRotate2 3.5s linear infinite; }
+        .llm-sparkle:nth-child(3) { top: 50%; left: 90%; animation: llmSparkleRotate3 4s linear infinite; }
+        .llm-sparkle:nth-child(4) { top: 80%; left: 80%; animation: llmSparkleRotate4 4.5s linear infinite; }
+        .llm-sparkle:nth-child(5) { top: 90%; left: 50%; animation: llmSparkleRotate5 5s linear infinite; }
+        .llm-sparkle:nth-child(6) { top: 80%; left: 20%; animation: llmSparkleRotate6 3.2s linear infinite; }
+        .llm-sparkle:nth-child(7) { top: 50%; left: 10%; animation: llmSparkleRotate7 3.8s linear infinite; }
+        .llm-sparkle:nth-child(8) { top: 20%; left: 20%; animation: llmSparkleRotate8 4.2s linear infinite; }
+        .llm-sparkle:nth-child(9) { top: 50%; left: 50%; animation: llmSparkleRotate9 4.8s linear infinite; }
+
         .llm-name {
             color: white;
             font-size: 18px;
@@ -223,6 +259,7 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
         }
 
         .pipi-speech-bubble::after {
@@ -238,9 +275,130 @@
             border-top: 8px solid rgba(255, 255, 255, 0.9);
         }
 
+        .name-edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .name-edit-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .name-edit-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .name-edit-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .name-edit-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .name-edit-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .name-edit-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .name-edit-btn:not(.cancel) {
+            background: #667eea;
+            color: white;
+        }
+
+        .name-edit-btn.cancel {
+            background: #ddd;
+            color: #333;
+        }
+
         @keyframes llmRotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+
+        @keyframes llmPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes llmSparkleRotate1 {
+            from { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate2 {
+            from { transform: rotate(0deg) translateX(18px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(18px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate3 {
+            from { transform: rotate(0deg) translateX(16px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(16px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate4 {
+            from { transform: rotate(0deg) translateX(14px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate5 {
+            from { transform: rotate(0deg) translateX(12px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(12px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate6 {
+            from { transform: rotate(0deg) translateX(10px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(10px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate7 {
+            from { transform: rotate(0deg) translateX(8px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(8px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate8 {
+            from { transform: rotate(0deg) translateX(6px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(6px) rotate(-360deg); }
+        }
+
+        @keyframes llmSparkleRotate9 {
+            from { transform: rotate(0deg) translateX(4px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(4px) rotate(-360deg); }
         }
 
         @keyframes pipiHorizontalMove {
@@ -274,9 +432,20 @@
     <div class="container">
         <div class="header">
             <div class="llm-info">
-                <div class="llm-avatar" id="llmAvatar">
+                <div class="llm-avatar" id="llmAvatar" onclick="editLlmName()">
+                    <div class="llm-sparkles">
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                        <div class="llm-sparkle"></div>
+                    </div>
                 </div>
-                <div class="llm-name" id="llmName">LINYA</div>
+                <div class="llm-name" id="llmName" onclick="editLlmName()">大皮皮</div>
             </div>
             
             <div class="user-info">
@@ -308,33 +477,73 @@
             點擊我試試看！
         </div>
     </div>
+    
+    <div class="name-edit-modal" id="nameEditModal">
+        <div class="name-edit-content">
+            <div class="name-edit-title">修改語氣靈名稱</div>
+            <input type="text" class="name-edit-input" id="nameEditInput" placeholder="輸入新名稱（最多5個中文字）" maxlength="5">
+            <div class="name-edit-buttons">
+                <button class="name-edit-btn" onclick="saveLlmName()">保存</button>
+                <button class="name-edit-btn cancel" onclick="cancelNameEdit()">取消</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="llm-config.js"></script>
     <script>
         // 全局變量
-        let isProcessing = false;
+        let isProcessing = false; // 防止重複處理
         
-        // 簡單的對話功能
-        function sendMessage() {
+        // 真實對話功能
+        async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
             if (!message || isProcessing) return;
             
-            isProcessing = true;
+            isProcessing = true; // 設置處理中標記
             
-            // 添加用戶消息
+            // 添加用戶消息到聊天框
             addMessageToChat('user', message);
             input.value = '';
             
-            // 簡單回應
-            setTimeout(() => {
-                addMessageToChat('llm', '你好！我是LINYA，很高興認識你！');
-                triggerPipiReaction('message_received');
+            // 檢查LLM是否已配置
+            if (!window.llmConfig.isConfigured()) {
+                addMessageToChat('llm', '請先設置API密鑰才能開始對話。點擊右上角狀態指示器進行設置。');
                 isProcessing = false;
-            }, 1000);
+                return;
+            }
+            
+            // 顯示正在輸入狀態
+            const typingMessage = addMessageToChat('llm', '語氣靈正在思考...', true);
+            
+            try {
+                // 發送消息到LLM（只發送當前消息，不包含歷史）
+                const response = await window.llmService.sendMessage(message);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 添加LLM回應（確保不重複）
+                addMessageToChat('llm', response);
+                
+                // 觸發皮皮反應
+                triggerPipiReaction('message_received');
+                
+            } catch (error) {
+                console.error('LLM請求失敗:', error);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 不顯示任何錯誤訊息
+            } finally {
+                // 重置處理標記
+                isProcessing = false;
+            }
         }
         
-        function addMessageToChat(role, content) {
+        function addMessageToChat(role, content, isTyping = false) {
             const chatBox = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
@@ -382,9 +591,43 @@
             }, 3000);
         }
         
+        // LLM名稱編輯
+        function editLlmName() {
+            const modal = document.getElementById('nameEditModal');
+            const input = document.getElementById('nameEditInput');
+            const currentName = document.getElementById('llmName').textContent;
+            
+            input.value = currentName;
+            modal.classList.add('show');
+        }
+        
+        function saveLlmName() {
+            const input = document.getElementById('nameEditInput');
+            const newName = input.value.trim();
+            
+            if (newName && newName.length <= 5) {
+                document.getElementById('llmName').textContent = newName;
+                localStorage.setItem('llmCustomName', newName);
+                cancelNameEdit();
+            } else {
+                alert('請輸入1-5個中文字符');
+            }
+        }
+        
+        function cancelNameEdit() {
+            const modal = document.getElementById('nameEditModal');
+            modal.classList.remove('show');
+        }
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🌱 皮皮 InnerPal 語氣靈已啟動');
+            
+            // 設置LLM名稱
+            const savedName = localStorage.getItem('llmCustomName');
+            if (savedName) {
+                document.getElementById('llmName').textContent = savedName;
+            }
             
             // 按Enter發送訊息
             document.getElementById('messageInput').addEventListener('keypress', function(e) {
@@ -393,7 +636,7 @@
                 }
             });
             
-            // 定期更新氣泡位置
+            // 定期更新氣泡位置，確保跟隨皮皮
             setInterval(updateBubblePosition, 100);
             
             // 歡迎訊息
