@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皮皮簡單測試</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', sans-serif;
+            color: white;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #gameCanvas {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌸 皮皮簡單測試 🌸</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script type="module">
+        import * as me from './node_modules/melonjs/dist/melonjs.module.js';
+
+        // 簡單的皮皮類
+        class SimplePipi extends me.Sprite {
+            constructor(x, y) {
+                // 創建簡單的紋理
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                
+                // 繪製簡單的圓形
+                ctx.fillStyle = '#FFB6C1';
+                ctx.beginPath();
+                ctx.arc(16, 16, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 繪製眼睛
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(12, 12, 2, 0, Math.PI * 2);
+                ctx.arc(20, 12, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 繪製嘴巴
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(16, 18, 4, 0, Math.PI);
+                ctx.stroke();
+                
+                super(x, y, {
+                    image: canvas,
+                    framewidth: 32,
+                    frameheight: 32
+                });
+                
+                // 物理屬性
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(0, 0, 32, 32));
+                this.body.setMaxVelocity(2, 8);
+                this.body.setFriction(0.3, 0);
+                this.body.collisionType = me.collision.types.PLAYER_OBJECT;
+            }
+            
+            update(dt) {
+                // 簡單的左右移動
+                if (this.pos.x < 0) {
+                    this.pos.x = 0;
+                    this.body.vel.x = 2;
+                }
+                if (this.pos.x > 768) {
+                    this.pos.x = 768;
+                    this.body.vel.x = -2;
+                }
+                
+                if (this.body.vel.x === 0) {
+                    this.body.vel.x = Math.random() > 0.5 ? 1 : -1;
+                }
+                
+                super.update(dt);
+                return true;
+            }
+        }
+
+        // 簡單的平台類
+        class SimplePlatform extends me.Sprite {
+            constructor(x, y, width, height) {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(0, 0, width, height);
+                
+                super(x, y, {
+                    image: canvas,
+                    framewidth: width,
+                    frameheight: height
+                });
+                
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(0, 0, width, height));
+                this.body.collisionType = me.collision.types.WORLD_SHAPE;
+                this.body.isStatic = true;
+            }
+        }
+
+        // 遊戲狀態
+        class TestState extends me.Stage {
+            onResetEvent() {
+                console.log("簡單測試開始");
+                
+                // 設置重力
+                me.game.world.gravity.set(0, 0.98);
+                
+                // 創建皮皮
+                const pipi = new SimplePipi(100, 100);
+                me.game.world.addChild(pipi);
+                
+                // 創建平台
+                const platforms = [
+                    new SimplePlatform(0, 550, 800, 50),  // 地面
+                    new SimplePlatform(200, 400, 150, 20), // 平台1
+                    new SimplePlatform(400, 300, 150, 20), // 平台2
+                ];
+                
+                platforms.forEach(platform => {
+                    me.game.world.addChild(platform);
+                });
+                
+                console.log("皮皮和平台已創建");
+            }
+        }
+
+        // 初始化
+        me.device.onReady(function () {
+            console.log("開始初始化...");
+            
+            if (!me.video.init(800, 600, {
+                parent: "gameCanvas", 
+                scale: "auto",
+                renderer: me.video.CANVAS
+            })) {
+                alert("不支持 Canvas");
+                return;
+            }
+
+            console.log("視頻系統初始化完成");
+            
+            me.game.world.backgroundColor.parseCSS("#87CEEB");
+            
+            me.state.set(me.state.PLAY, new TestState());
+            me.state.change(me.state.PLAY);
+            
+            console.log("🌸 皮皮簡單測試完成！🌸");
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,30 @@
+{
+  "name": "pipi",
+  "version": "1.0.0",
+  "description": "靈芽(LINYA) - 互動聊天產品",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npm run proxy & npm run serve",
+    "serve": "http-server -p 8080 -o",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "proxy": "node api-proxy.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["chat", "ai", "llm", "interactive"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "melonjs": "^17.4.0",
+    "http-server": "^14.1.1",
+    "@supabase/supabase-js": "^2.38.4",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "supabase": "^1.123.4"
+  }
+}

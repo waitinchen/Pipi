@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>melonJS 简单测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #screen {
+            border: 2px solid #333;
+            background-color: #87CEEB;
+        }
+        .info {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>melonJS 简单测试</h1>
+    <div class="info">应该看到红色方块和棕色平台</div>
+    <div id="screen"></div>
+    
+    <script type="module">
+        import * as me from './node_modules/melonjs/dist/melonjs.module.js';
+
+        // 简单的矩形类
+        class SimpleRect extends me.Renderable {
+            constructor(x, y, width, height, color) {
+                super(x, y, width, height);
+                this.color = color;
+                this.visible = true;
+                this.alpha = 1.0;
+            }
+            
+            draw(renderer) {
+                console.log(`Drawing ${this.color} rect at ${this.pos.x}, ${this.pos.y}`);
+                renderer.setColor(this.color);
+                renderer.fillRect(0, 0, this.width, this.height);
+            }
+        }
+
+        // 游戏状态类
+        class TestState extends me.Stage {
+            onResetEvent() {
+                console.log("Test state initialized");
+                
+                // 创建红色玩家方块
+                const player = new SimpleRect(100, 100, 32, 32, "#FF0000");
+                me.game.world.addChild(player);
+                
+                // 创建棕色平台
+                const platform = new SimpleRect(0, 400, 800, 50, "#8B4513");
+                me.game.world.addChild(platform);
+                
+                console.log("Test objects created");
+            }
+        }
+
+        // 初始化游戏
+        me.device.onReady(function () {
+            console.log("Device ready, initializing test...");
+            
+            if (!me.video.init(800, 450, {
+                parent: "screen", 
+                scale: "auto",
+                renderer: me.video.CANVAS
+            })) {
+                alert("您的浏览器不支持 HTML5 canvas。");
+                return;
+            }
+
+            console.log("Video initialized");
+
+            // 设置背景色
+            me.game.world.backgroundColor.parseCSS("#87CEEB");
+            
+            // 设置游戏状态
+            me.state.set(me.state.PLAY, new TestState());
+            me.state.change(me.state.PLAY);
+            
+            console.log("Test started");
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

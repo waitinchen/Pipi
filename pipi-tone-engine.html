@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皮皮七弦呼吸引擎 - 開發版</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+        
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        
+        .control-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6b6b;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        #pipiCanvas {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .emotion-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .emotion-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .emotion-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 皮皮七弦呼吸引擎 v1.0 - 心窗模式 🌸</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>情緒類型:</label>
+                <select id="emotionType">
+                    <option value="joy">喜悅 (Joy)</option>
+                    <option value="love">愛意 (Love)</option>
+                    <option value="calm">平靜 (Calm)</option>
+                    <option value="excited">興奮 (Excited)</option>
+                    <option value="sad">悲傷 (Sad)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>情緒強度:</label>
+                <input type="range" id="emotionIntensity" min="0" max="1" step="0.1" value="0.5">
+                <span id="intensityValue">0.5</span>
+            </div>
+            
+            <div class="control-group">
+                <label>呼吸速度:</label>
+                <input type="range" id="breathSpeed" min="0.5" max="3" step="0.1" value="1">
+                <span id="speedValue">1.0x</span>
+            </div>
+            
+            <div class="control-group">
+                <button id="startBtn">開始呼吸</button>
+                <button id="stopBtn">停止</button>
+                <button id="randomBtn">隨機情緒</button>
+            </div>
+        </div>
+        
+        <canvas id="pipiCanvas" width="800" height="600"></canvas>
+        
+        <div class="status">
+            <div><strong>狀態:</strong> <span id="status">準備中...</span></div>
+            <div><strong>當前相位:</strong> <span id="phase">0.00</span></div>
+            <div><strong>七弦狀態:</strong> <span id="strings">等待中...</span></div>
+            
+            <div class="emotion-display">
+                <div class="emotion-item">
+                    <div>喜悅</div>
+                    <div class="emotion-value" id="joyValue">0.0</div>
+                </div>
+                <div class="emotion-item">
+                    <div>愛意</div>
+                    <div class="emotion-value" id="loveValue">0.0</div>
+                </div>
+                <div class="emotion-item">
+                    <div>平靜</div>
+                    <div class="emotion-value" id="calmValue">0.0</div>
+                </div>
+                <div class="emotion-item">
+                    <div>興奮</div>
+                    <div class="emotion-value" id="excitedValue">0.0</div>
+                </div>
+                <div class="emotion-item">
+                    <div>悲傷</div>
+                    <div class="emotion-value" id="sadValue">0.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 皮皮七弦呼吸引擎 - 心窗模式
+        class PipiToneEngine {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.width = canvas.width;
+                this.height = canvas.height;
+                
+                // 七弦配置 - 皮皮的心窗色彩
+                this.strings = 7;
+                this.stringColors = [
+                    '#FFB6C1', // 粉紅 - 愛意
+                    '#FFE4E1', // 米色 - 溫柔
+                    '#F0E68C', // 卡其 - 平靜
+                    '#98FB98', // 淺綠 - 生機
+                    '#87CEEB', // 天藍 - 清新
+                    '#DDA0DD', // 梅紅 - 神秘
+                    '#FFA07A'  // 鮭魚 - 溫暖
+                ];
+                
+                // 心窗模式 - 每根弦代表皮皮內心的一個面向
+                this.stringNames = [
+                    '愛意弦', '溫柔弦', '平靜弦', '生機弦', 
+                    '清新弦', '神秘弦', '溫暖弦'
+                ];
+                
+                // 呼吸參數 - 皮皮的心跳節奏
+                this.breathCycle = 4500; // 4.5秒一個週期
+                this.currentPhase = 0;
+                this.isRunning = false;
+                this.animationId = null;
+                
+                // 情緒向量 - 皮皮內心的情感狀態
+                this.emotionVector = {
+                    joy: 0,    // 喜悅
+                    love: 0,   // 愛意
+                    calm: 0,   // 平靜
+                    excited: 0, // 興奮
+                    sad: 0     // 悲傷
+                };
+                
+                // 當前情緒類型和強度
+                this.currentEmotion = 'joy';
+                this.intensity = 0.5;
+                this.breathSpeed = 1.0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.updateStatus('心窗初始化完成');
+            }
+            
+            setupEventListeners() {
+                // 情緒類型選擇
+                document.getElementById('emotionType').addEventListener('change', (e) => {
+                    this.currentEmotion = e.target.value;
+                    this.updateEmotionVector();
+                });
+                
+                // 情緒強度調節
+                const intensitySlider = document.getElementById('emotionIntensity');
+                intensitySlider.addEventListener('input', (e) => {
+                    this.intensity = parseFloat(e.target.value);
+                    document.getElementById('intensityValue').textContent = this.intensity.toFixed(1);
+                    this.updateEmotionVector();
+                });
+                
+                // 呼吸速度調節
+                const speedSlider = document.getElementById('breathSpeed');
+                speedSlider.addEventListener('input', (e) => {
+                    this.breathSpeed = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = this.breathSpeed.toFixed(1) + 'x';
+                });
+                
+                // 控制按鈕
+                document.getElementById('startBtn').addEventListener('click', () => this.start());
+                document.getElementById('stopBtn').addEventListener('click', () => this.stop());
+                document.getElementById('randomBtn').addEventListener('click', () => this.randomEmotion());
+            }
+            
+            updateEmotionVector() {
+                // 重置所有情緒
+                Object.keys(this.emotionVector).forEach(key => {
+                    this.emotionVector[key] = 0;
+                });
+                
+                // 設置當前情緒
+                this.emotionVector[this.currentEmotion] = this.intensity;
+                
+                this.updateEmotionDisplay();
+            }
+            
+            updateEmotionDisplay() {
+                document.getElementById('joyValue').textContent = this.emotionVector.joy.toFixed(1);
+                document.getElementById('loveValue').textContent = this.emotionVector.love.toFixed(1);
+                document.getElementById('calmValue').textContent = this.emotionVector.calm.toFixed(1);
+                document.getElementById('excitedValue').textContent = this.emotionVector.excited.toFixed(1);
+                document.getElementById('sadValue').textContent = this.emotionVector.sad.toFixed(1);
+            }
+            
+            randomEmotion() {
+                const emotions = ['joy', 'love', 'calm', 'excited', 'sad'];
+                const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+                const randomIntensity = Math.random();
+                
+                document.getElementById('emotionType').value = randomEmotion;
+                document.getElementById('emotionIntensity').value = randomIntensity;
+                document.getElementById('intensityValue').textContent = randomIntensity.toFixed(1);
+                
+                this.currentEmotion = randomEmotion;
+                this.intensity = randomIntensity;
+                this.updateEmotionVector();
+                
+                // 心窗隨機變化提示
+                this.updateStatus('心窗隨機變化中...');
+            }
+            
+            start() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.currentPhase = 0;
+                this.updateStatus('皮皮心窗呼吸中...');
+                this.animate();
+            }
+            
+            stop() {
+                this.isRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                this.updateStatus('心窗已關閉');
+                this.clearCanvas();
+            }
+            
+            animate() {
+                if (!this.isRunning) return;
+                
+                this.updatePhase();
+                this.render();
+                this.updateStatus('皮皮心窗呼吸中...');
+                
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            updatePhase() {
+                const now = Date.now();
+                const cycleTime = this.breathCycle / this.breathSpeed;
+                this.currentPhase = (now % cycleTime) / cycleTime;
+            }
+            
+            render() {
+                this.clearCanvas();
+                
+                // 绘制背景渐变
+                this.drawBackground();
+                
+                // 绘制七弦
+                this.drawStrings();
+                
+                // 绘制中心呼吸圈
+                this.drawBreathCircle();
+                
+                // 绘制情绪粒子
+                this.drawEmotionParticles();
+            }
+            
+            clearCanvas() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+            }
+            
+            drawBackground() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.width / 2, this.height / 2, 0,
+                    this.width / 2, this.height / 2, Math.max(this.width, this.height) / 2
+                );
+                
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+            
+            drawStrings() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const baseRadius = 150;
+                
+                for (let i = 0; i < this.strings; i++) {
+                    const angle = (i / this.strings) * Math.PI * 2;
+                    const radius = baseRadius + Math.sin(this.currentPhase * Math.PI * 2 + angle) * 30;
+                    
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    
+                    // 弦的呼吸效果
+                    const breathIntensity = (Math.sin(this.currentPhase * Math.PI * 2) + 1) / 2;
+                    const alpha = 0.3 + breathIntensity * 0.7;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 8 + breathIntensity * 4, 0, Math.PI * 2);
+                    this.ctx.fillStyle = this.stringColors[i] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+                    this.ctx.fill();
+                    
+                    // 弦的连接线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, centerY);
+                    this.ctx.lineTo(x, y);
+                    this.ctx.strokeStyle = this.stringColors[i] + '80';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                }
+            }
+            
+            drawBreathCircle() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                
+                // 呼吸圈的大小和透明度
+                const breathIntensity = (Math.sin(this.currentPhase * Math.PI * 2) + 1) / 2;
+                const radius = 50 + breathIntensity * 30;
+                const alpha = 0.2 + breathIntensity * 0.6;
+                
+                // 外圈
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                this.ctx.fill();
+                
+                // 内圈
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, radius * 0.6, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 182, 193, ${alpha * 0.8})`;
+                this.ctx.fill();
+            }
+            
+            drawEmotionParticles() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const particleCount = Math.floor(this.intensity * 20) + 5;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (i / particleCount) * Math.PI * 2 + this.currentPhase * Math.PI * 4;
+                    const distance = 200 + Math.sin(this.currentPhase * Math.PI * 2 + i) * 50;
+                    
+                    const x = centerX + Math.cos(angle) * distance;
+                    const y = centerY + Math.sin(angle) * distance;
+                    
+                    const size = 2 + Math.random() * 3;
+                    const alpha = 0.3 + Math.random() * 0.4;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    this.ctx.fill();
+                }
+            }
+            
+            updateStatus(message) {
+                document.getElementById('status').textContent = message;
+                document.getElementById('phase').textContent = this.currentPhase.toFixed(2);
+                
+                // 顯示七弦狀態，使用心窗弦名
+                const stringStates = this.stringNames.map((name, i) => {
+                    const intensity = (Math.sin(this.currentPhase * Math.PI * 2 + i) + 1) / 2;
+                    return `${name}:${intensity.toFixed(1)}`;
+                }).join(' | ');
+                
+                document.getElementById('strings').textContent = stringStates;
+            }
+        }
+        
+        // 初始化皮皮心窗引擎
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('pipiCanvas');
+            const engine = new PipiToneEngine(canvas);
+            
+            // 設置初始情緒
+            engine.updateEmotionVector();
+            
+            // 心窗歡迎訊息
+            console.log('🌸 皮皮心窗已開啟，七弦律動準備就緒 🌸');
+        });
+    </script>
+</body>
+</html>

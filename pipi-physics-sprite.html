@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皮皮物理精靈 - melonJS版</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+        
+        .control-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6b6b;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .control-group button.active {
+            background: #4CAF50;
+        }
+        
+        #gameCanvas {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .pipi-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 皮皮物理精靈 - melonJS版 🌸</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>皮皮模式:</label>
+                <button id="autoMode" class="active">自主模式</button>
+                <button id="manualMode">手動模式</button>
+                <button id="idleMode">發呆模式</button>
+            </div>
+            
+            <div class="control-group">
+                <label>行為控制:</label>
+                <button id="makeHappy">讓皮皮開心</button>
+                <button id="makeExcited">讓皮皮興奮</button>
+                <button id="makeSad">讓皮皮難過</button>
+                <button id="makeShy">讓皮皮害羞</button>
+            </div>
+            
+            <div class="control-group">
+                <label>環境控制:</label>
+                <button id="addPlatform">添加平台</button>
+                <button id="addObstacle">添加障礙</button>
+                <button id="resetWorld">重置世界</button>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+        
+        <div class="status">
+            <div><strong>皮皮狀態:</strong> <span id="pipiStatus">自主探索中...</span></div>
+            <div><strong>當前行為:</strong> <span id="pipiBehavior">自由移動</span></div>
+            <div><strong>情緒狀態:</strong> <span id="pipiEmotion">開心</span></div>
+            
+            <div class="pipi-info">
+                <div class="info-item">
+                    <div>位置 X</div>
+                    <div class="info-value" id="pipiX">0</div>
+                </div>
+                <div class="info-item">
+                    <div>位置 Y</div>
+                    <div class="info-value" id="pipiY">0</div>
+                </div>
+                <div class="info-item">
+                    <div>速度 X</div>
+                    <div class="info-value" id="pipiVelX">0</div>
+                </div>
+                <div class="info-item">
+                    <div>速度 Y</div>
+                    <div class="info-value" id="pipiVelY">0</div>
+                </div>
+                <div class="info-item">
+                    <div>在地面</div>
+                    <div class="info-value" id="pipiOnGround">否</div>
+                </div>
+                <div class="info-item">
+                    <div>跳躍次數</div>
+                    <div class="info-value" id="pipiJumps">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as me from './node_modules/melonjs/dist/melonjs.module.js';
+
+        // 皮皮物理精靈類
+        class PipiPhysicsSprite extends me.Sprite {
+            constructor(x, y) {
+                // 創建皮皮的表情紋理
+                const canvas = document.createElement('canvas');
+                canvas.width = 48;
+                canvas.height = 48;
+                const ctx = canvas.getContext('2d');
+                
+                // 先調用super
+                super(x, y, {
+                    image: canvas,
+                    framewidth: 48,
+                    frameheight: 48
+                });
+                
+                // 繪製皮皮的基本形狀
+                this.drawPipiFace(ctx, 24, 24, 'normal');
+                
+                // 物理屬性
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(8, 8, 32, 32)); // 稍微小一點的碰撞體
+                this.body.setMaxVelocity(2, 8);
+                this.body.setFriction(0.3, 0);
+                this.body.collisionType = me.collision.types.PLAYER_OBJECT;
+                this.body.setBounciness(0.1);
+                this.body.setMass(1);
+                
+                // 皮皮屬性
+                this.mode = 'auto'; // auto, manual, idle
+                this.emotion = 'happy';
+                this.behavior = 'exploring';
+                this.jumpCount = 0;
+                this.lastJumpTime = 0;
+                this.idleTime = 0;
+                this.direction = 1; // 1 = 右, -1 = 左
+                this.autoMoveTimer = 0;
+                this.autoMoveInterval = 2000 + Math.random() * 3000; // 2-5秒
+                this.autoJumpTimer = 0;
+                this.autoJumpInterval = 5000 + Math.random() * 5000; // 5-10秒
+                
+                // 表情動畫
+                this.faceExpressions = {
+                    happy: 'ʕ◉ᴥ◉ʔ',
+                    excited: 'ʕ◉ᴥ◉ʔ',
+                    sad: 'ʕ·ᴥ·ʔ',
+                    shy: 'ʕ ·ᴥʔ',
+                    confused: 'ʕᴥ· ʔ',
+                    normal: 'ʕ·ᴥ·ʔ'
+                };
+                
+                this.currentFace = 'normal';
+                this.faceChangeTimer = 0;
+                this.faceChangeInterval = 3000; // 3秒眨眼
+                
+                this.updateFaceTexture();
+            }
+            
+            drawPipiFace(ctx, centerX, centerY, expression) {
+                // 清除畫布
+                ctx.clearRect(0, 0, 48, 48);
+                
+                // 繪製皮皮的身體（圓形）
+                ctx.fillStyle = '#FFB6C1';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 繪製邊框
+                ctx.strokeStyle = '#FF69B4';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 根據表情繪製眼睛
+                this.drawEyes(ctx, centerX, centerY, expression);
+                
+                // 繪製嘴巴
+                this.drawMouth(ctx, centerX, centerY, expression);
+            }
+            
+            drawEyes(ctx, centerX, centerY, expression) {
+                ctx.fillStyle = '#000000';
+                
+                switch(expression) {
+                    case 'happy':
+                    case 'excited':
+                        // 開心的眼睛
+                        ctx.beginPath();
+                        ctx.arc(centerX - 8, centerY - 5, 3, 0, Math.PI * 2);
+                        ctx.arc(centerX + 8, centerY - 5, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'sad':
+                        // 悲傷的眼睛
+                        ctx.beginPath();
+                        ctx.arc(centerX - 8, centerY - 3, 2, 0, Math.PI * 2);
+                        ctx.arc(centerX + 8, centerY - 3, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'shy':
+                        // 害羞的眼睛
+                        ctx.beginPath();
+                        ctx.arc(centerX - 8, centerY - 5, 2, 0, Math.PI * 2);
+                        ctx.arc(centerX + 8, centerY - 5, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'confused':
+                        // 疑惑的眼睛
+                        ctx.beginPath();
+                        ctx.arc(centerX - 8, centerY - 5, 2, 0, Math.PI * 2);
+                        ctx.arc(centerX + 8, centerY - 5, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    default:
+                        // 正常眼睛
+                        ctx.beginPath();
+                        ctx.arc(centerX - 8, centerY - 5, 2.5, 0, Math.PI * 2);
+                        ctx.arc(centerX + 8, centerY - 5, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                }
+            }
+            
+            drawMouth(ctx, centerX, centerY, expression) {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                
+                switch(expression) {
+                    case 'happy':
+                    case 'excited':
+                        // 開心的嘴巴
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY + 3, 6, 0, Math.PI);
+                        ctx.stroke();
+                        break;
+                    case 'sad':
+                        // 悲傷的嘴巴
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY + 8, 4, Math.PI, 0);
+                        ctx.stroke();
+                        break;
+                    case 'shy':
+                        // 害羞的嘴巴
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY + 5, 3, 0, Math.PI);
+                        ctx.stroke();
+                        break;
+                    case 'confused':
+                        // 疑惑的嘴巴
+                        ctx.beginPath();
+                        ctx.moveTo(centerX - 3, centerY + 5);
+                        ctx.lineTo(centerX + 3, centerY + 5);
+                        ctx.stroke();
+                        break;
+                    default:
+                        // 正常嘴巴
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY + 5, 4, 0, Math.PI);
+                        ctx.stroke();
+                }
+            }
+            
+            updateFaceTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 48;
+                canvas.height = 48;
+                const ctx = canvas.getContext('2d');
+                this.drawPipiFace(ctx, 24, 24, this.currentFace);
+                
+                // 更新紋理
+                this.image = canvas;
+            }
+            
+            update(dt) {
+                this.updateTimers(dt);
+                this.updateBehavior(dt);
+                this.updateFaceAnimation(dt);
+                this.updatePhysics(dt);
+                this.updateStatus();
+                
+                super.update(dt);
+                return true;
+            }
+            
+            updateTimers(dt) {
+                this.autoMoveTimer += dt;
+                this.autoJumpTimer += dt;
+                this.faceChangeTimer += dt;
+                this.idleTime += dt;
+            }
+            
+            updateBehavior(dt) {
+                switch(this.mode) {
+                    case 'auto':
+                        this.autoBehavior(dt);
+                        break;
+                    case 'manual':
+                        this.manualBehavior(dt);
+                        break;
+                    case 'idle':
+                        this.idleBehavior(dt);
+                        break;
+                }
+            }
+            
+            autoBehavior(dt) {
+                // 自動移動
+                if (this.autoMoveTimer >= this.autoMoveInterval) {
+                    this.autoMoveTimer = 0;
+                    this.autoMoveInterval = 2000 + Math.random() * 3000;
+                    
+                    // 隨機選擇行為
+                    const behaviors = ['move_left', 'move_right', 'jump', 'idle'];
+                    const randomBehavior = behaviors[Math.floor(Math.random() * behaviors.length)];
+                    
+                    switch(randomBehavior) {
+                        case 'move_left':
+                            this.direction = -1;
+                            this.body.force.x = -this.body.maxVel.x;
+                            this.behavior = '向左移動';
+                            break;
+                        case 'move_right':
+                            this.direction = 1;
+                            this.body.force.x = this.body.maxVel.x;
+                            this.behavior = '向右移動';
+                            break;
+                        case 'jump':
+                            if (this.body.vel.y === 0) {
+                                this.body.vel.y = -this.body.maxVel.y;
+                                this.jumpCount++;
+                                this.behavior = '跳躍';
+                                this.currentFace = 'excited';
+                            }
+                            break;
+                        case 'idle':
+                            this.behavior = '發呆中...';
+                            this.currentFace = 'confused';
+                            break;
+                    }
+                }
+                
+                // 自動跳躍
+                if (this.autoJumpTimer >= this.autoJumpInterval && this.body.vel.y === 0) {
+                    this.autoJumpTimer = 0;
+                    this.autoJumpInterval = 5000 + Math.random() * 5000;
+                    
+                    this.body.vel.y = -this.body.maxVel.y;
+                    this.jumpCount++;
+                    this.behavior = '自動跳躍';
+                    this.currentFace = 'excited';
+                }
+                
+                // 停止移動
+                if (this.autoMoveTimer < 1000) {
+                    this.body.force.x = 0;
+                }
+            }
+            
+            manualBehavior(dt) {
+                // 手動控制（可以通過按鍵控制）
+                if (me.input.isKeyPressed("left") || me.input.isKeyPressed("a")) {
+                    this.body.force.x = -this.body.maxVel.x;
+                    this.direction = -1;
+                    this.behavior = '手動左移';
+                } else if (me.input.isKeyPressed("right") || me.input.isKeyPressed("d")) {
+                    this.body.force.x = this.body.maxVel.x;
+                    this.direction = 1;
+                    this.behavior = '手動右移';
+                } else {
+                    this.body.force.x = 0;
+                }
+                
+                if (me.input.isKeyPressed("up") || me.input.isKeyPressed("w")) {
+                    if (this.body.vel.y === 0) {
+                        this.body.vel.y = -this.body.maxVel.y;
+                        this.jumpCount++;
+                        this.behavior = '手動跳躍';
+                    }
+                }
+            }
+            
+            idleBehavior(dt) {
+                this.body.force.x = 0;
+                this.behavior = '發呆中...';
+                
+                // 偶爾改變表情
+                if (this.faceChangeTimer >= 2000) {
+                    this.faceChangeTimer = 0;
+                    const idleFaces = ['confused', 'shy', 'normal'];
+                    this.currentFace = idleFaces[Math.floor(Math.random() * idleFaces.length)];
+                }
+            }
+            
+            updateFaceAnimation(dt) {
+                // 眨眼動畫
+                if (this.faceChangeTimer >= this.faceChangeInterval) {
+                    this.faceChangeTimer = 0;
+                    this.faceChangeInterval = 3000 + Math.random() * 2000;
+                    
+                    // 短暫閉眼
+                    const originalFace = this.currentFace;
+                    this.currentFace = 'blink';
+                    this.updateFaceTexture();
+                    
+                    setTimeout(() => {
+                        this.currentFace = originalFace;
+                        this.updateFaceTexture();
+                    }, 200);
+                }
+            }
+            
+            updatePhysics(dt) {
+                // 限制在地面範圍內
+                if (this.pos.x < 0) {
+                    this.pos.x = 0;
+                    this.direction = 1;
+                }
+                if (this.pos.x > 952) { // 1000 - 48
+                    this.pos.x = 952;
+                    this.direction = -1;
+                }
+                
+                // 防止掉出底部
+                if (this.pos.y > 552) { // 600 - 48
+                    this.pos.y = 552;
+                    this.body.vel.y = 0;
+                }
+            }
+            
+            updateStatus() {
+                // 更新狀態顯示
+                document.getElementById('pipiX').textContent = Math.round(this.pos.x);
+                document.getElementById('pipiY').textContent = Math.round(this.pos.y);
+                document.getElementById('pipiVelX').textContent = Math.round(this.body.vel.x * 100) / 100;
+                document.getElementById('pipiVelY').textContent = Math.round(this.body.vel.y * 100) / 100;
+                document.getElementById('pipiOnGround').textContent = this.body.vel.y === 0 ? '是' : '否';
+                document.getElementById('pipiJumps').textContent = this.jumpCount;
+                document.getElementById('pipiBehavior').textContent = this.behavior;
+                document.getElementById('pipiEmotion').textContent = this.emotion;
+            }
+            
+            setMode(mode) {
+                this.mode = mode;
+                this.autoMoveTimer = 0;
+                this.autoJumpTimer = 0;
+                
+                switch(mode) {
+                    case 'auto':
+                        document.getElementById('pipiStatus').textContent = '自主探索中...';
+                        break;
+                    case 'manual':
+                        document.getElementById('pipiStatus').textContent = '手動控制中...';
+                        break;
+                    case 'idle':
+                        document.getElementById('pipiStatus').textContent = '發呆中...';
+                        break;
+                }
+            }
+            
+            setEmotion(emotion) {
+                this.emotion = emotion;
+                this.currentFace = emotion;
+                this.updateFaceTexture();
+                
+                // 根據情緒改變行為
+                switch(emotion) {
+                    case 'happy':
+                        this.behavior = '開心地跳躍';
+                        break;
+                    case 'excited':
+                        this.behavior = '興奮地奔跑';
+                        break;
+                    case 'sad':
+                        this.behavior = '難過地發呆';
+                        break;
+                    case 'shy':
+                        this.behavior = '害羞地躲藏';
+                        break;
+                }
+            }
+            
+            onCollision(response, other) {
+                if (response.b.body.collisionType === me.collision.types.WORLD_SHAPE) {
+                    if (response.overlapV.y > 0 && this.body.vel.y >= 0) {
+                        this.body.vel.y = 0;
+                        this.body.falling = false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // 平台類
+        class Platform extends me.Sprite {
+            constructor(x, y, width, height) {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect(0, 0, width, height);
+                
+                super(x, y, {
+                    image: canvas,
+                    framewidth: width,
+                    frameheight: height
+                });
+                
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(0, 0, width, height));
+                this.body.collisionType = me.collision.types.WORLD_SHAPE;
+                this.body.isStatic = true;
+            }
+        }
+
+        // 遊戲狀態類
+        class GameState extends me.Stage {
+            constructor() {
+                super();
+                this.pipi = null;
+                this.platforms = [];
+            }
+            
+            onResetEvent() {
+                console.log("皮皮物理世界初始化");
+                
+                // 設置重力
+                me.game.world.gravity.set(0, 0.98);
+                
+                // 創建皮皮
+                this.pipi = new PipiPhysicsSprite(100, 100);
+                me.game.world.addChild(this.pipi);
+                
+                // 創建平台
+                this.createPlatforms();
+                
+                // 設置輸入
+                this.setupInput();
+                
+                // 設置控制按鈕
+                this.setupControls();
+                
+                console.log("皮皮物理精靈已創建");
+            }
+            
+            createPlatforms() {
+                const platforms = [
+                    new Platform(0, 550, 1000, 50),      // 地面
+                    new Platform(200, 450, 150, 20),      // 平台1
+                    new Platform(400, 350, 150, 20),      // 平台2
+                    new Platform(600, 250, 150, 20),      // 平台3
+                    new Platform(800, 400, 100, 20),      // 平台4
+                ];
+                
+                platforms.forEach(platform => {
+                    me.game.world.addChild(platform);
+                    this.platforms.push(platform);
+                });
+            }
+            
+            setupInput() {
+                me.input.bindKey(me.input.KEY.LEFT, "left");
+                me.input.bindKey(me.input.KEY.RIGHT, "right");
+                me.input.bindKey(me.input.KEY.UP, "up");
+                me.input.bindKey(me.input.KEY.A, "a");
+                me.input.bindKey(me.input.KEY.D, "d");
+                me.input.bindKey(me.input.KEY.W, "w");
+            }
+            
+            setupControls() {
+                // 模式控制
+                document.getElementById('autoMode').addEventListener('click', () => {
+                    this.pipi.setMode('auto');
+                    this.updateModeButtons('autoMode');
+                });
+                
+                document.getElementById('manualMode').addEventListener('click', () => {
+                    this.pipi.setMode('manual');
+                    this.updateModeButtons('manualMode');
+                });
+                
+                document.getElementById('idleMode').addEventListener('click', () => {
+                    this.pipi.setMode('idle');
+                    this.updateModeButtons('idleMode');
+                });
+                
+                // 情緒控制
+                document.getElementById('makeHappy').addEventListener('click', () => {
+                    this.pipi.setEmotion('happy');
+                });
+                
+                document.getElementById('makeExcited').addEventListener('click', () => {
+                    this.pipi.setEmotion('excited');
+                });
+                
+                document.getElementById('makeSad').addEventListener('click', () => {
+                    this.pipi.setEmotion('sad');
+                });
+                
+                document.getElementById('makeShy').addEventListener('click', () => {
+                    this.pipi.setEmotion('shy');
+                });
+                
+                // 環境控制
+                document.getElementById('addPlatform').addEventListener('click', () => {
+                    this.addRandomPlatform();
+                });
+                
+                document.getElementById('addObstacle').addEventListener('click', () => {
+                    this.addRandomObstacle();
+                });
+                
+                document.getElementById('resetWorld').addEventListener('click', () => {
+                    this.resetWorld();
+                });
+            }
+            
+            updateModeButtons(activeMode) {
+                document.querySelectorAll('.control-group button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(activeMode).classList.add('active');
+            }
+            
+            addRandomPlatform() {
+                const x = Math.random() * 800 + 100;
+                const y = Math.random() * 300 + 200;
+                const width = 100 + Math.random() * 100;
+                const height = 20;
+                
+                const platform = new Platform(x, y, width, height);
+                me.game.world.addChild(platform);
+                this.platforms.push(platform);
+            }
+            
+            addRandomObstacle() {
+                const x = Math.random() * 800 + 100;
+                const y = Math.random() * 300 + 200;
+                const size = 30 + Math.random() * 30;
+                
+                const obstacle = new Platform(x, y, size, size);
+                me.game.world.addChild(obstacle);
+                this.platforms.push(obstacle);
+            }
+            
+            resetWorld() {
+                // 清除所有平台（除了地面）
+                this.platforms.forEach((platform, index) => {
+                    if (index > 0) { // 保留地面
+                        me.game.world.removeChild(platform);
+                    }
+                });
+                this.platforms = this.platforms.slice(0, 1); // 只保留地面
+                
+                // 重新創建基本平台
+                this.createPlatforms();
+            }
+            
+            onDestroyEvent() {
+                me.input.unbindKey(me.input.KEY.LEFT);
+                me.input.unbindKey(me.input.KEY.RIGHT);
+                me.input.unbindKey(me.input.KEY.UP);
+                me.input.unbindKey(me.input.KEY.A);
+                me.input.unbindKey(me.input.KEY.D);
+                me.input.unbindKey(me.input.KEY.W);
+            }
+        }
+
+        // 初始化遊戲
+        me.device.onReady(function () {
+            console.log("皮皮物理精靈系統啟動中...");
+            
+            if (!me.video.init(1000, 600, {
+                parent: "gameCanvas", 
+                scale: "auto",
+                renderer: me.video.CANVAS
+            })) {
+                alert("您的瀏覽器不支持 HTML5 canvas。");
+                return;
+            }
+
+            console.log("melonJS 視頻系統初始化完成");
+
+            // 設置背景色
+            me.game.world.backgroundColor.parseCSS("#87CEEB");
+            
+            // 設置遊戲狀態
+            me.state.set(me.state.PLAY, new GameState());
+            me.state.change(me.state.PLAY);
+            
+            console.log("🌸 皮皮物理精靈已啟動！🌸");
+        });
+    </script>
+</body>
+</html>

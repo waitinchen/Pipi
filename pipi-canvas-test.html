@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皮皮Canvas測試</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', sans-serif;
+            color: white;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+        }
+        
+        #gameCanvas {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: #87CEEB;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6b6b;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌸 皮皮Canvas測試 🌸</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="controls">
+        <button onclick="drawPipi()">繪製皮皮</button>
+        <button onclick="clearCanvas()">清除</button>
+        <button onclick="animatePipi()">動畫皮皮</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let pipiX = 100;
+        let pipiY = 100;
+        let animationId = null;
+        
+        function drawPipi(x = pipiX, y = pipiY, expression = 'normal') {
+            // 清除畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製背景
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製地面
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, 550, canvas.width, 50);
+            
+            // 繪製皮皮的身體
+            ctx.fillStyle = '#FFB6C1';
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 繪製邊框
+            ctx.strokeStyle = '#FF69B4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 繪製眼睛
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x - 8, y - 5, 2.5, 0, Math.PI * 2);
+            ctx.arc(x + 8, y - 5, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 繪製嘴巴
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y + 5, 4, 0, Math.PI);
+            ctx.stroke();
+            
+            // 繪製平台
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(200, 400, 150, 20);
+            ctx.fillRect(400, 300, 150, 20);
+            ctx.fillRect(600, 450, 100, 20);
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function animatePipi() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            let direction = 1;
+            let speed = 2;
+            
+            function animate() {
+                // 移動皮皮
+                pipiX += speed * direction;
+                
+                // 邊界檢測
+                if (pipiX <= 20) {
+                    direction = 1;
+                } else if (pipiX >= 780) {
+                    direction = -1;
+                }
+                
+                // 繪製皮皮
+                drawPipi(pipiX, pipiY);
+                
+                // 繼續動畫
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // 初始化
+        drawPipi();
+        
+        console.log('🌸 皮皮Canvas測試已啟動！🌸');
+    </script>
+</body>
+</html>
+
+
+
+
+

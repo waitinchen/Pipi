@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>melonJS 工作版本</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #screen {
+            border: 2px solid #333;
+            background-color: #87CEEB;
+        }
+        .info {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>melonJS 工作版本</h1>
+    <div class="info">使用 WASD 或方向键移动红色方块</div>
+    <div id="screen"></div>
+    
+    <script type="module">
+        import * as me from './node_modules/melonjs/dist/melonjs.module.js';
+
+        // 使用 me.Sprite 而不是 me.Renderable
+        class Player extends me.Sprite {
+            constructor(x, y) {
+                // 创建一个简单的红色纹理
+                const canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(0, 0, 32, 32);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect(0, 0, 32, 32);
+                
+                super(x, y, {
+                    image: canvas,
+                    framewidth: 32,
+                    frameheight: 32
+                });
+                
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(0, 0, 32, 32));
+                this.body.setMaxVelocity(3, 15);
+                this.body.setFriction(0.4, 0);
+                this.body.collisionType = me.collision.types.PLAYER_OBJECT;
+            }
+            
+            update(dt) {
+                // 处理输入
+                if (me.input.isKeyPressed("left") || me.input.isKeyPressed("a")) {
+                    this.body.force.x = -this.body.maxVel.x;
+                } else if (me.input.isKeyPressed("right") || me.input.isKeyPressed("d")) {
+                    this.body.force.x = this.body.maxVel.x;
+                } else {
+                    this.body.force.x = 0;
+                }
+                
+                if (me.input.isKeyPressed("up") || me.input.isKeyPressed("w")) {
+                    if (this.body.vel.y === 0) {
+                        this.body.vel.y = -this.body.maxVel.y;
+                    }
+                }
+                
+                // 限制玩家在画布范围内
+                if (this.pos.x < 0) this.pos.x = 0;
+                if (this.pos.x > 768) this.pos.x = 768;
+                if (this.pos.y < 0) this.pos.y = 0;
+                if (this.pos.y > 418) this.pos.y = 418;
+                
+                super.update(dt);
+                return true;
+            }
+        }
+
+        class Platform extends me.Sprite {
+            constructor(x, y, width, height) {
+                // 创建棕色纹理
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect(0, 0, width, height);
+                
+                super(x, y, {
+                    image: canvas,
+                    framewidth: width,
+                    frameheight: height
+                });
+                
+                this.body = new me.Body(this);
+                this.body.addShape(new me.Rect(0, 0, width, height));
+                this.body.collisionType = me.collision.types.WORLD_SHAPE;
+                this.body.isStatic = true;
+            }
+        }
+
+        // 游戏状态类
+        class GameState extends me.Stage {
+            onResetEvent() {
+                console.log("Game state initialized");
+                
+                // 设置重力
+                me.game.world.gravity.set(0, 0.98);
+                
+                // 创建玩家
+                this.player = new Player(100, 100);
+                me.game.world.addChild(this.player);
+                
+                // 创建平台
+                const platforms = [
+                    new Platform(0, 400, 800, 50),      // 地面
+                    new Platform(200, 300, 100, 20),     // 平台1
+                    new Platform(400, 250, 100, 20),     // 平台2
+                    new Platform(600, 200, 100, 20),     // 平台3
+                ];
+                
+                platforms.forEach(platform => {
+                    me.game.world.addChild(platform);
+                });
+                
+                // 添加输入绑定
+                me.input.bindKey(me.input.KEY.LEFT, "left");
+                me.input.bindKey(me.input.KEY.RIGHT, "right");
+                me.input.bindKey(me.input.KEY.UP, "up");
+                me.input.bindKey(me.input.KEY.A, "a");
+                me.input.bindKey(me.input.KEY.D, "d");
+                me.input.bindKey(me.input.KEY.W, "w");
+                
+                console.log("Game objects created successfully");
+            }
+            
+            onDestroyEvent() {
+                me.input.unbindKey(me.input.KEY.LEFT);
+                me.input.unbindKey(me.input.KEY.RIGHT);
+                me.input.unbindKey(me.input.KEY.UP);
+                me.input.unbindKey(me.input.KEY.A);
+                me.input.unbindKey(me.input.KEY.D);
+                me.input.unbindKey(me.input.KEY.W);
+            }
+        }
+
+        // 初始化游戏
+        me.device.onReady(function () {
+            console.log("Device ready, initializing game...");
+            
+            if (!me.video.init(800, 450, {
+                parent: "screen", 
+                scale: "auto",
+                renderer: me.video.CANVAS
+            })) {
+                alert("您的浏览器不支持 HTML5 canvas。");
+                return;
+            }
+
+            console.log("Video initialized");
+
+            // 设置背景色
+            me.game.world.backgroundColor.parseCSS("#87CEEB");
+            
+            // 设置游戏状态
+            me.state.set(me.state.PLAY, new GameState());
+            me.state.change(me.state.PLAY);
+            
+            console.log("Game started successfully");
+        });
+    </script>
+</body>
+</html>

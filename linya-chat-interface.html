@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>靈芽(LINYA) - 語氣靈對話界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .chat-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            border-radius: 20px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .message.lingya {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            margin-right: auto;
+        }
+        
+        .message.pipi {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #8b4513;
+            margin-right: auto;
+            font-size: 0.9em;
+            border: 2px dashed #ffb6c1;
+            max-width: 60%;
+        }
+        
+        .message-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .chat-input {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-input input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .send-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .pipi-panel {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .pipi-face {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: blink 3s infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pipi-face:hover {
+            transform: scale(1.1);
+        }
+        
+        .pipi-status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .pipi-status h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .pipi-emotion {
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+        
+        .pipi-symbols {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .symbol-bubble {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #8b4513;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            animation: float 2s ease-in-out infinite;
+            border: 2px dashed #ffb6c1;
+        }
+        
+        .heart-window-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .heart-window-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .pipi-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .control-btn {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 靈芽(LINYA)</h1>
+        <p>與語氣靈的純淨對話空間</p>
+    </div>
+    
+    <div class="main-container">
+        <div class="chat-area">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message lingya">
+                    <div class="message-label">語氣靈</div>
+                    你好！我是語氣靈，很高興與你對話。今天想聊什麼呢？
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="輸入你的訊息..." maxlength="500">
+                    <button class="send-btn" onclick="sendMessage()">發送</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pipi-panel">
+            <div class="pipi-face" id="pipiFace" onclick="toggleHeartWindow()">ʕ·ᴥ·ʔ</div>
+            
+            <div class="pipi-status">
+                <h3>皮皮</h3>
+                <div class="pipi-emotion" id="pipiEmotion">靜靜觀察中...</div>
+            </div>
+            
+            <div class="pipi-symbols" id="pipiSymbols">
+                <div class="symbol-bubble">✨</div>
+            </div>
+            
+            <button class="heart-window-btn" onclick="toggleHeartWindow()">
+                💖 查看皮皮的心窗
+            </button>
+            
+            <div class="pipi-controls">
+                <button class="control-btn" onclick="triggerPipiReaction('happy')">讓皮皮開心</button>
+                <button class="control-btn" onclick="triggerPipiReaction('surprised')">讓皮皮驚訝</button>
+                <button class="control-btn" onclick="triggerPipiReaction('confused')">讓皮皮疑惑</button>
+                <button class="control-btn" onclick="triggerPipiReaction('shy')">讓皮皮害羞</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 心窗模態框 -->
+    <div id="heartWindow" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 20px; padding: 30px; max-width: 90%; max-height: 90%; overflow: auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #2c3e50; margin-bottom: 10px;">🌸 皮皮的心窗 🌸</h2>
+                <p style="color: #7f8c8d;">七弦呼吸律動 - 皮皮內心的情感狀態</p>
+            </div>
+            <iframe src="pipi-tone-engine.html" width="800" height="600" style="border: none; border-radius: 15px;"></iframe>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="toggleHeartWindow()" style="background: #ff6b6b; color: white; border: none; padding: 12px 25px; border-radius: 20px; cursor: pointer; font-size: 16px;">關閉心窗</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 皮皮符號語系統
+        class PipiSymbolSystem {
+            constructor() {
+                this.currentEmotion = 'neutral';
+                this.symbols = {
+                    happy: ['✨', '🎉', '💖', '😊', '🌟', '💫', '🎈'],
+                    surprised: ['😮', '🤯', '💥', '⚡', '🔥', '💢', '❗'],
+                    confused: ['🤔', '❓', '💭', '🌀', '🌪️', '💫', '❔'],
+                    shy: ['😊', '💕', '🌸', '🌺', '💝', '🎀', '💌'],
+                    sad: ['😢', '💧', '🌧️', '☁️', '💔', '🌙', '⭐'],
+                    excited: ['🎊', '🎆', '🌈', '☀️', '🚀', '💥', '🎯'],
+                    love: ['💖', '💕', '💗', '💝', '💘', '💞', '💓']
+                };
+                
+                this.phrases = {
+                    happy: ['好棒！', '太厲害了！', '真有趣～', '好開心！', '太棒了！'],
+                    surprised: ['哇！', '真的嗎？', '好驚訝！', '天啊！', '不會吧！'],
+                    confused: ['嗯...', '什麼？', '不懂...', '奇怪？', '為什麼？'],
+                    shy: ['害羞...', '好害羞～', '不敢看...', '臉紅了...', '好緊張...'],
+                    sad: ['好難過...', '想哭...', '不開心...', '好傷心...', '嗚嗚...'],
+                    excited: ['太興奮了！', '好激動！', '太棒了！', '好期待！', '哇塞！'],
+                    love: ['好愛～', '太喜歡了！', '好溫暖～', '好幸福！', '好甜～']
+                };
+                
+                this.faceExpressions = {
+                    happy: 'ʕ◉ᴥ◉ʔ',
+                    surprised: 'ʕ◉ᴥ◉ʔ',
+                    confused: 'ʕᴥ· ʔ',
+                    shy: 'ʕ ·ᴥʔ',
+                    sad: 'ʕ·ᴥ·ʔ',
+                    excited: 'ʕ◉ᴥ◉ʔ',
+                    love: 'ʕ￫ᴥ￩ʔ',
+                    neutral: 'ʕ·ᴥ·ʔ'
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.startBlinking();
+                this.startRandomReactions();
+            }
+            
+            startBlinking() {
+                setInterval(() => {
+                    const face = document.getElementById('pipiFace');
+                    face.style.animation = 'none';
+                    setTimeout(() => {
+                        face.style.animation = 'blink 0.3s ease-in-out';
+                    }, 10);
+                }, 3000);
+            }
+            
+            startRandomReactions() {
+                // 每30-60秒隨機反應
+                setInterval(() => {
+                    if (Math.random() < 0.3) { // 30%機率
+                        this.generateRandomReaction();
+                    }
+                }, 30000 + Math.random() * 30000);
+            }
+            
+            generateRandomReaction() {
+                const emotions = Object.keys(this.symbols);
+                const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+                this.reactToEmotion(randomEmotion);
+            }
+            
+            reactToEmotion(emotion) {
+                this.currentEmotion = emotion;
+                
+                // 更新表情
+                const face = document.getElementById('pipiFace');
+                face.textContent = this.faceExpressions[emotion];
+                
+                // 更新情緒狀態
+                const emotionText = document.getElementById('pipiEmotion');
+                emotionText.textContent = this.getEmotionText(emotion);
+                
+                // 生成符號語
+                this.generateSymbolMessage(emotion);
+            }
+            
+            getEmotionText(emotion) {
+                const emotionTexts = {
+                    happy: '好開心～',
+                    surprised: '好驚訝！',
+                    confused: '好疑惑...',
+                    shy: '好害羞～',
+                    sad: '好難過...',
+                    excited: '好興奮！',
+                    love: '好溫暖～',
+                    neutral: '靜靜觀察中...'
+                };
+                return emotionTexts[emotion] || '靜靜觀察中...';
+            }
+            
+            generateSymbolMessage(emotion) {
+                const symbols = this.symbols[emotion];
+                const phrases = this.phrases[emotion];
+                
+                // 隨機選擇1-3個符號
+                const symbolCount = Math.floor(Math.random() * 3) + 1;
+                const selectedSymbols = [];
+                for (let i = 0; i < symbolCount; i++) {
+                    selectedSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
+                }
+                
+                // 隨機選擇短語
+                const selectedPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+                
+                // 組合符號和短語
+                const message = selectedSymbols.join('') + ' ' + selectedPhrase;
+                
+                // 顯示在符號區域
+                this.displaySymbolMessage(message);
+                
+                // 添加到聊天記錄
+                this.addPipiMessage(message);
+            }
+            
+            displaySymbolMessage(message) {
+                const symbolsContainer = document.getElementById('pipiSymbols');
+                symbolsContainer.innerHTML = '';
+                
+                // 創建符號氣泡
+                const bubble = document.createElement('div');
+                bubble.className = 'symbol-bubble';
+                bubble.textContent = message;
+                bubble.style.animation = 'float 2s ease-in-out infinite';
+                
+                symbolsContainer.appendChild(bubble);
+                
+                // 3秒後清除
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.parentNode.removeChild(bubble);
+                    }
+                }, 3000);
+            }
+            
+            addPipiMessage(message) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message pipi';
+                messageDiv.innerHTML = `
+                    <div class="message-label">皮皮</div>
+                    ${message}
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        
+        // 初始化皮皮系統
+        const pipiSystem = new PipiSymbolSystem();
+        
+        // 聊天功能
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // 添加用戶訊息
+                addMessage('user', message);
+                
+                // 清空輸入框
+                input.value = '';
+                
+                // 模擬語氣靈回應
+                setTimeout(() => {
+                    const responses = [
+                        '這是一個很有趣的話題！',
+                        '我理解你的想法。',
+                        '讓我們繼續深入討論吧。',
+                        '你的觀點很有見地。',
+                        '這讓我想到了...',
+                        '我完全同意你的看法。',
+                        '這確實值得思考。',
+                        '謝謝你分享這個想法。'
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage('lingya', randomResponse);
+                    
+                    // 觸發皮皮反應
+                    triggerPipiReactionFromMessage(message);
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function addMessage(sender, content) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const label = sender === 'user' ? '你' : sender === 'lingya' ? '語氣靈' : '皮皮';
+            messageDiv.innerHTML = `
+                <div class="message-label">${label}</div>
+                ${content}
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function triggerPipiReactionFromMessage(message) {
+            // 根據訊息內容觸發皮皮反應
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('開心') || lowerMessage.includes('高興') || lowerMessage.includes('快樂')) {
+                pipiSystem.reactToEmotion('happy');
+            } else if (lowerMessage.includes('驚訝') || lowerMessage.includes('意外') || lowerMessage.includes('沒想到')) {
+                pipiSystem.reactToEmotion('surprised');
+            } else if (lowerMessage.includes('不懂') || lowerMessage.includes('疑惑') || lowerMessage.includes('為什麼')) {
+                pipiSystem.reactToEmotion('confused');
+            } else if (lowerMessage.includes('愛') || lowerMessage.includes('喜歡') || lowerMessage.includes('溫暖')) {
+                pipiSystem.reactToEmotion('love');
+            } else if (lowerMessage.includes('難過') || lowerMessage.includes('傷心') || lowerMessage.includes('不開心')) {
+                pipiSystem.reactToEmotion('sad');
+            } else if (lowerMessage.includes('興奮') || lowerMessage.includes('激動') || lowerMessage.includes('期待')) {
+                pipiSystem.reactToEmotion('excited');
+            } else {
+                // 隨機反應
+                pipiSystem.generateRandomReaction();
+            }
+        }
+        
+        function triggerPipiReaction(emotion) {
+            pipiSystem.reactToEmotion(emotion);
+        }
+        
+        function toggleHeartWindow() {
+            const heartWindow = document.getElementById('heartWindow');
+            heartWindow.classList.toggle('hidden');
+        }
+        
+        // 按Enter發送訊息
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌱 靈芽(LINYA) 已啟動');
+            console.log('👀 皮皮正在靜靜觀察...');
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
