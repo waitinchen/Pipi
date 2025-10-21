@@ -2,7 +2,7 @@
 class LLMConfig {
     constructor() {
         this.apiKey = null;
-        this.baseUrl = 'http://localhost:3001/api'; // 本地代理API
+        this.baseUrl = window.location.origin + '/api'; // 動態API地址
         this.model = 'claude-3-haiku-20240307';
         this.maxTokens = 1000;
         this.temperature = 0.7;
