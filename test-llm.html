@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM測試頁面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .api-key-section {
+            margin-bottom: 30px;
+        }
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .api-key-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .status.connected {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+        .status.disconnected {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+        .chat-section {
+            margin-top: 30px;
+        }
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+        .message.user {
+            background: rgba(102, 126, 234, 0.3);
+            text-align: right;
+        }
+        .message.llm {
+            background: rgba(139, 69, 19, 0.3);
+        }
+        .message-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 靈芽(LINYA) - LLM測試</h1>
+        
+        <div class="api-key-section">
+            <h3>API密鑰設置</h3>
+            <input type="password" class="api-key-input" id="apiKeyInput" placeholder="輸入OpenAI API密鑰">
+            <button class="btn" onclick="setApiKey()">設置API密鑰</button>
+            <div class="status" id="status">未連接</div>
+        </div>
+        
+        <div class="chat-section">
+            <h3>對話測試</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message llm">
+                    <strong>語氣靈:</strong> 你好！我是語氣靈，請先設置API密鑰後開始對話。
+                </div>
+            </div>
+            <input type="text" class="message-input" id="messageInput" placeholder="輸入你的訊息..." onkeypress="handleKeyPress(event)">
+        </div>
+    </div>
+
+    <script type="module">
+        // 簡化的LLM配置
+        class SimpleLLMConfig {
+            constructor() {
+                this.apiKey = null;
+                this.baseUrl = 'https://api.openai.com/v1';
+                this.model = 'gpt-3.5-turbo';
+            }
+
+            setApiKey(apiKey) {
+                this.apiKey = apiKey;
+                localStorage.setItem('llm_api_key', apiKey);
+            }
+
+            loadApiKey() {
+                const savedKey = localStorage.getItem('llm_api_key');
+                if (savedKey) {
+                    this.apiKey = savedKey;
+                }
+                return this.apiKey;
+            }
+
+            isConfigured() {
+                return this.apiKey && this.apiKey.length > 0;
+            }
+        }
+
+        class SimpleLLMService {
+            constructor(config) {
+                this.config = config;
+                this.conversationHistory = [];
+            }
+
+            async sendMessage(userMessage) {
+                if (!this.config.isConfigured()) {
+                    throw new Error('LLM API密鑰未配置');
+                }
+
+                this.conversationHistory.push({
+                    role: 'user',
+                    content: userMessage
+                });
+
+                try {
+                    const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.config.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: this.config.model,
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: '你是語氣靈(LINYA)，一個溫柔、智慧的AI助手。用溫暖、友善的語氣與用戶對話，回答簡潔但富有感情。'
+                                },
+                                ...this.conversationHistory
+                            ],
+                            max_tokens: 1000,
+                            temperature: 0.7
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API請求失敗: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const assistantMessage = data.choices[0].message.content;
+
+                    this.conversationHistory.push({
+                        role: 'assistant',
+                        content: assistantMessage
+                    });
+
+                    return assistantMessage;
+
+                } catch (error) {
+                    console.error('LLM請求錯誤:', error);
+                    throw error;
+                }
+            }
+        }
+
+        // 創建全局實例
+        const llmConfig = new SimpleLLMConfig();
+        const llmService = new SimpleLLMService(llmConfig);
+
+        // 設置API密鑰
+        function setApiKey() {
+            const input = document.getElementById('apiKeyInput');
+            const apiKey = input.value.trim();
+            
+            if (apiKey && apiKey.length > 10) {
+                llmConfig.setApiKey(apiKey);
+                updateStatus();
+                input.value = '';
+                alert('API密鑰已保存！');
+            } else {
+                alert('請輸入有效的API密鑰！');
+            }
+        }
+
+        // 更新狀態
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (llmConfig.isConfigured()) {
+                status.textContent = '✅ LLM已連接';
+                status.className = 'status connected';
+            } else {
+                status.textContent = '❌ LLM未連接';
+                status.className = 'status disconnected';
+            }
+        }
+
+        // 發送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // 添加用戶消息
+            addMessage('user', message);
+            input.value = '';
+            
+            // 檢查LLM是否已配置
+            if (!llmConfig.isConfigured()) {
+                addMessage('llm', '請先設置API密鑰才能開始對話。');
+                return;
+            }
+            
+            // 顯示正在輸入
+            const typingMessage = addMessage('llm', '語氣靈正在思考...');
+            
+            try {
+                // 發送消息到LLM
+                const response = await llmService.sendMessage(message);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 添加LLM回應
+                addMessage('llm', response);
+                
+            } catch (error) {
+                console.error('LLM請求失敗:', error);
+                
+                // 移除正在輸入狀態
+                typingMessage.remove();
+                
+                // 顯示錯誤消息
+                addMessage('llm', '抱歉，我現在無法回應。請檢查API密鑰設置。');
+            }
+        }
+
+        // 添加消息到聊天框
+        function addMessage(role, content) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const sender = role === 'user' ? '你' : '語氣靈';
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${content}`;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        // 處理回車鍵
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 載入已保存的API密鑰
+            llmConfig.loadApiKey();
+            updateStatus();
+            
+            // 如果沒有API密鑰，自動填入提供的密鑰
+            if (!llmConfig.isConfigured()) {
+                // API密鑰需要手動輸入
+            }
+        });
+
+        // 將函數設為全局
+        window.setApiKey = setApiKey;
+        window.sendMessage = sendMessage;
+        window.handleKeyPress = handleKeyPress;
+    </script>
+</body>
+</html>
+
+
+
+
+
