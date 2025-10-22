@@ -785,6 +785,26 @@
             100% { transform: rotate(360deg); }
         }
         
+        /* 皮皮動作動畫 */
+        @keyframes pipiJump {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px) scale(1.1); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pipiWiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes pipiSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        
         /* 手機版媒體查詢 */
         @media screen and (max-width: 768px) {
             .main-container {
@@ -1049,6 +1069,8 @@
                 this.interruptionCooldown = 30000; // 30秒冷卻時間
                 this.interruptionProbability = 0.3; // 30%機率插話
                 this.ownerName = '語氣靈'; // 皮皮知道自己的主人
+                this.lastMentionTime = 0; // 最後一次被提及的時間
+                this.mentionCooldown = 10000; // 10秒冷卻時間
                 this.shortPhrases = [
                     '嗯嗯～', '哇！', '好棒！', '真的嗎？', '皮皮聽到了！',
                     '好有趣～', '皮皮想說...', '嗯...', '皮皮明白了！',
@@ -1058,6 +1080,13 @@
                     '好溫柔～', '皮皮想哭...', '好幸福！', '皮皮愛你！',
                     '好聰明！', '皮皮想學習！', '好棒棒！', '皮皮要加油！',
                     '主人好棒！', '皮皮愛主人！', '主人最棒！', '皮皮要保護主人！'
+                ];
+                
+                // 皮皮被提及時的反應短語
+                this.mentionPhrases = [
+                    '皮皮在這裡！', '叫我嗎？', '皮皮聽到了！', '嗯嗯～',
+                    '皮皮在！', '什麼事？', '皮皮來了！', '怎麼了？',
+                    '皮皮很開心！', '皮皮在聽！', '皮皮明白！', '皮皮知道！'
                 ];
             }
             
@@ -1080,8 +1109,95 @@
                     this.conversationContext = this.conversationContext.slice(-20);
                 }
                 
+                // 檢查是否被提及
+                if (role === 'user' && this.isPipiMentioned(content)) {
+                    this.handlePipiMention();
+                }
+                
                 // 檢查是否需要插話
                 this.checkForInterruption();
+            }
+            
+            // 檢查是否被提及
+            isPipiMentioned(content) {
+                const contentLower = content.toLowerCase();
+                return contentLower.includes('皮皮') || 
+                       contentLower.includes('pipi') || 
+                       contentLower.includes('寵物') ||
+                       contentLower.includes('小夥伴');
+            }
+            
+            // 處理被提及的反應
+            handlePipiMention() {
+                const now = Date.now();
+                if (now - this.lastMentionTime < this.mentionCooldown) {
+                    return; // 還在冷卻中
+                }
+                
+                this.lastMentionTime = now;
+                
+                // 隨機選擇反應類型
+                const reactionType = Math.random();
+                
+                if (reactionType < 0.6) {
+                    // 60%機率說話
+                    this.performMentionSpeech();
+                } else {
+                    // 40%機率動作反應
+                    this.performMentionAction();
+                }
+            }
+            
+            // 執行被提及時的說話
+            performMentionSpeech() {
+                const phrase = this.getRandomPhrase(this.mentionPhrases);
+                this.showPipiSpeech(phrase);
+                
+                // 觸發開心表情
+                this.triggerPipiExpression('happy');
+                
+                console.log('🐻 皮皮被提及，說話:', phrase);
+            }
+            
+            // 執行被提及時的動作
+            performMentionAction() {
+                this.triggerPipiAction('mention');
+                console.log('🐻 皮皮被提及，執行動作反應');
+            }
+            
+            // 觸發皮皮動作
+            triggerPipiAction(actionType) {
+                const pipiMini = document.getElementById('pipiMini');
+                if (!pipiMini) return;
+                
+                switch (actionType) {
+                    case 'mention':
+                        // 被提及時的動作：跳躍
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiJump 0.6s ease-in-out';
+                        }, 10);
+                        break;
+                    case 'happy':
+                        // 開心動作：左右搖擺
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiWiggle 0.8s ease-in-out';
+                        }, 10);
+                        break;
+                    case 'excited':
+                        // 興奮動作：旋轉
+                        pipiMini.style.animation = 'none';
+                        setTimeout(() => {
+                            pipiMini.style.animation = 'pipiSpin 1s ease-in-out';
+                        }, 10);
+                        break;
+                }
+                
+                // 恢復原始動畫
+                setTimeout(() => {
+                    pipiMini.style.animation = 'pipiHorizontalMove 12s infinite ease-in-out';
+                }, 1000);
             }
             
             // 檢查插話時機
@@ -1178,11 +1294,11 @@
                     // 根據短語內容選擇表情
                     let expression = 'normal';
                     
-                    if (phrase.includes('開心') || phrase.includes('棒') || phrase.includes('幸福')) {
+                    if (phrase.includes('開心') || phrase.includes('棒') || phrase.includes('幸福') || phrase.includes('皮皮在這裡') || phrase.includes('叫我嗎')) {
                         expression = 'happy';
                     } else if (phrase.includes('想哭') || phrase.includes('難過')) {
                         expression = 'sad';
-                    } else if (phrase.includes('思考') || phrase.includes('疑問')) {
+                    } else if (phrase.includes('思考') || phrase.includes('疑問') || phrase.includes('什麼事') || phrase.includes('怎麼了')) {
                         expression = 'confused';
                     } else if (phrase.includes('愛') || phrase.includes('抱抱') || phrase.includes('主人')) {
                         expression = 'love';
@@ -1381,7 +1497,7 @@
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
             
-            // 更新皮皮的對話上下文
+            // 更新皮皮的對話上下文（觸發提及檢測）
             if (window.pipiIntelligence && !isTyping) {
                 window.pipiIntelligence.updateContext(role, content);
             }
@@ -1836,6 +1952,13 @@
         
         // 在控制台暴露管理員功能
         window.adminLevelInfo = getAdminLevelInfo;
+        
+        // 測試皮皮反應功能
+        window.testPipiMention = function() {
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.handlePipiMention();
+            }
+        };
         
         // 顯示階段升級通知
         function showStageUpgradeNotification(stageInfo) {
