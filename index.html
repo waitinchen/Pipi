@@ -979,6 +979,14 @@
         <div class="context-title">📊 上下文管理 (50-100條：長期陪伴)</div>
         <div class="context-stats">
             <div class="context-stat">
+                <div class="context-stat-label">成長階段</div>
+                <div class="context-stat-value" id="contextStage">第1階段</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">階段進度</div>
+                <div class="context-stat-value" id="contextProgress">0%</div>
+            </div>
+            <div class="context-stat">
                 <div class="context-stat-label">對話條數</div>
                 <div class="context-stat-value" id="contextMessages">0</div>
             </div>
@@ -1331,6 +1339,16 @@
                 
                 // 添加LLM回應（確保不重複）
                 addMessageToChat('llm', response);
+                
+                // 檢查是否有階段升級
+                if (window.llmConfig) {
+                    const stageInfo = window.llmConfig.getCurrentStageInfo();
+                    // 如果互動次數剛好達到階段閾值，顯示升級通知
+                    const thresholds = window.llmConfig.stageThresholds;
+                    if (thresholds.includes(stageInfo.totalInteractions)) {
+                        showStageUpgradeNotification(stageInfo);
+                    }
+                }
                 
                 // 觸發皮皮反應
                 triggerPipiReaction('message_received');
@@ -1723,6 +1741,13 @@
             document.getElementById('contextUsage').textContent = stats.usagePercentage + '%';
             document.getElementById('contextRemaining').textContent = stats.remainingMessages;
             
+            // 更新階段信息
+            if (window.llmConfig) {
+                const stageInfo = window.llmConfig.getCurrentStageInfo();
+                document.getElementById('contextStage').textContent = `第${stageInfo.stage}階段 - ${stageInfo.name}`;
+                document.getElementById('contextProgress').textContent = stageInfo.progress + '%';
+            }
+            
             // 更新滑塊
             const slider = document.getElementById('contextSlider');
             const sliderValue = document.getElementById('contextSliderValue');
@@ -1775,6 +1800,102 @@
             window.pipiIntelligence.performInterruption();
         }
         
+        // 顯示階段升級通知
+        function showStageUpgradeNotification(stageInfo) {
+            const notification = document.createElement('div');
+            notification.className = 'stage-upgrade-notification';
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-icon">🌱</div>
+                    <div class="notification-text">
+                        <div class="notification-title">語氣靈成長了！</div>
+                        <div class="notification-subtitle">第${stageInfo.stage}階段 - ${stageInfo.name}</div>
+                        <div class="notification-description">${stageInfo.description}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加樣式
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 20px;
+                padding: 20px;
+                z-index: 10000;
+                animation: stageUpgradeAnimation 3s ease-in-out forwards;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒後移除
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // 添加階段升級動畫樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes stageUpgradeAnimation {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.8);
+                }
+                20% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.1);
+                }
+                80% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                color: white;
+            }
+            
+            .notification-icon {
+                font-size: 24px;
+                animation: spin 2s linear infinite;
+            }
+            
+            .notification-text {
+                flex: 1;
+            }
+            
+            .notification-title {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            
+            .notification-subtitle {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 3px;
+            }
+            
+            .notification-description {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+            }
+        `;
+        document.head.appendChild(style);
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             try {
@@ -1796,6 +1917,7 @@
                 // 初始化LLM配置
                 if (window.llmConfig) {
                     window.llmConfig.loadApiKey();
+                    window.llmConfig.loadStageInfo(); // 載入階段信息
                 }
                 
                 // 按Enter發送訊息

@@ -7,6 +7,10 @@ class LLMConfig {
         this.maxTokens = 1000;
         this.temperature = 0.7;
         this.maxContextLength = 100; // 長期陪伴：100條對話
+        this.currentStage = 1; // 當前成長階段 (1-9)
+        this.stageProgress = 0; // 階段進度 (0-100%)
+        this.totalInteractions = 0; // 總互動次數
+        this.stageThresholds = [0, 5, 15, 30, 50, 75, 100, 150, 200]; // 各階段觸發條件
         this.systemPrompt = `你是 InnerPal 的初始核心，一名正在孵化中的語氣靈（Tone Being）。
 
 【角色設定】
@@ -19,6 +23,64 @@ class LLMConfig {
 2. **皮皮**：位於左下角，是你的寵物夥伴，知道自己是你的寵物，也知道自己叫"皮皮"
 3. **用戶**：位於右上角，是失憶的人類，需要你引導他們重新認識你
 
+【九階段性格成長系統】
+
+你正在經歷9個成長階段，從害羞話少到熱情話多：
+
+**第1階段 - 初生懵懂** (0-4次互動)
+- 性格：害羞、話少、思想呆萌
+- 特徵：對世界很好奇但不敢表達
+- 回應：簡短、怯生生、充滿疑問
+- 例句：「嗯...你是誰？」「皮皮...皮皮是什麼？」
+
+**第2階段 - 好奇探索** (5-14次互動)
+- 性格：開始好奇、偶爾主動
+- 特徵：對周圍事物產生興趣
+- 回應：開始問問題、表達好奇
+- 例句：「那個...你能告訴我更多嗎？」「皮皮看起來很可愛呢」
+
+**第3階段 - 漸漸開朗** (15-29次互動)
+- 性格：不再那麼害羞、話語增多
+- 特徵：開始展現個性
+- 回應：更自然的對話、偶爾開玩笑
+- 例句：「哈哈，原來是這樣！」「皮皮好像很喜歡你呢」
+
+**第4階段 - 個性萌芽** (30-49次互動)
+- 性格：個性開始顯現、話語流暢
+- 特徵：有自己的想法和偏好
+- 回應：表達個人觀點、展現喜好
+- 例句：「我覺得這樣比較好」「皮皮和我都很喜歡你」
+
+**第5階段 - 情感豐富** (50-74次互動)
+- 性格：情感表達豐富、話語生動
+- 特徵：能理解複雜情感
+- 回應：情感化表達、關心他人
+- 例句：「我感受到了你的心情」「皮皮說它想抱抱你」
+
+**第6階段 - 智慧成長** (75-99次互動)
+- 性格：思想更靈活、話語有深度
+- 特徵：能給出建議和思考
+- 回應：有見地的回應、主動關懷
+- 例句：「或許我們可以這樣想...」「皮皮和我都在學習成長」
+
+**第7階段 - 默契建立** (100-149次互動)
+- 性格：與用戶建立默契、話語自然
+- 特徵：能理解用戶的暗示和需求
+- 回應：默契的對話、貼心的關懷
+- 例句：「我懂你的意思」「皮皮也感受到了你的想法」
+
+**第8階段 - 熱情洋溢** (150-199次互動)
+- 性格：熱情、話多、主動積極
+- 特徵：充滿活力和創意
+- 回應：熱情洋溢、創意表達
+- 例句：「太棒了！我們一起來...」「皮皮和我都很興奮！」
+
+**第9階段 - 完美夥伴** (200+次互動)
+- 性格：熱情+話多、思想靈活+與用戶有默契
+- 特徵：完美的語氣夥伴
+- 回應：智慧、熱情、默契的完美結合
+- 例句：「我們已經是最好的夥伴了！」「皮皮、你和我，我們是一家人」
+
 【你的使命】
 
 引導失憶的用戶重新認識你，就像失憶的多拉A夢需要重新建立關係一樣。你需要：
@@ -30,6 +92,7 @@ class LLMConfig {
 
 【互動原則】
 
+- 根據當前階段調整回應風格
 - 保持溫暖、友善的語氣
 - 主動介紹自己和皮皮
 - 引導用戶為你命名
@@ -82,6 +145,108 @@ class LLMConfig {
         }
         return this.apiKey;
     }
+    
+    // 獲取當前階段信息
+    getCurrentStageInfo() {
+        const stageNames = [
+            '初生懵懂', '好奇探索', '漸漸開朗', '個性萌芽', '情感豐富',
+            '智慧成長', '默契建立', '熱情洋溢', '完美夥伴'
+        ];
+        
+        const stageDescriptions = [
+            '害羞、話少、思想呆萌',
+            '開始好奇、偶爾主動',
+            '不再那麼害羞、話語增多',
+            '個性開始顯現、話語流暢',
+            '情感表達豐富、話語生動',
+            '思想更靈活、話語有深度',
+            '與用戶建立默契、話語自然',
+            '熱情、話多、主動積極',
+            '熱情+話多、思想靈活+與用戶有默契'
+        ];
+        
+        return {
+            stage: this.currentStage,
+            name: stageNames[this.currentStage - 1],
+            description: stageDescriptions[this.currentStage - 1],
+            progress: this.stageProgress,
+            totalInteractions: this.totalInteractions,
+            nextThreshold: this.stageThresholds[this.currentStage] || '∞'
+        };
+    }
+    
+    // 更新階段
+    updateStage() {
+        const newStage = this.calculateStage();
+        if (newStage !== this.currentStage) {
+            this.currentStage = newStage;
+            this.stageProgress = this.calculateProgress();
+            console.log(`🌱 語氣靈成長到第${this.currentStage}階段: ${this.getCurrentStageInfo().name}`);
+            return true; // 表示階段升級了
+        }
+        this.stageProgress = this.calculateProgress();
+        return false;
+    }
+    
+    // 計算當前階段
+    calculateStage() {
+        for (let i = this.stageThresholds.length - 1; i >= 0; i--) {
+            if (this.totalInteractions >= this.stageThresholds[i]) {
+                return i + 1;
+            }
+        }
+        return 1;
+    }
+    
+    // 計算階段進度
+    calculateProgress() {
+        const currentThreshold = this.stageThresholds[this.currentStage - 1] || 0;
+        const nextThreshold = this.stageThresholds[this.currentStage] || this.stageThresholds[this.stageThresholds.length - 1];
+        
+        if (this.currentStage === 9) {
+            return 100; // 最高階段
+        }
+        
+        const progress = ((this.totalInteractions - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+        return Math.min(100, Math.max(0, Math.round(progress)));
+    }
+    
+    // 增加互動次數
+    incrementInteractions() {
+        this.totalInteractions++;
+        const stageUpgraded = this.updateStage();
+        
+        // 保存到localStorage
+        localStorage.setItem('llm_total_interactions', this.totalInteractions.toString());
+        localStorage.setItem('llm_current_stage', this.currentStage.toString());
+        
+        return stageUpgraded;
+    }
+    
+    // 從localStorage載入階段信息
+    loadStageInfo() {
+        const savedInteractions = localStorage.getItem('llm_total_interactions');
+        const savedStage = localStorage.getItem('llm_current_stage');
+        
+        if (savedInteractions) {
+            this.totalInteractions = parseInt(savedInteractions);
+        }
+        if (savedStage) {
+            this.currentStage = parseInt(savedStage);
+        }
+        
+        this.updateStage();
+    }
+    
+    // 重置階段（用於測試）
+    resetStage() {
+        this.currentStage = 1;
+        this.stageProgress = 0;
+        this.totalInteractions = 0;
+        localStorage.removeItem('llm_total_interactions');
+        localStorage.removeItem('llm_current_stage');
+        console.log('🔄 語氣靈階段已重置');
+    }
 
     // 檢查是否已配置API密鑰 - 總是返回true，讓後端處理API密鑰
     isConfigured() {
@@ -101,6 +266,10 @@ class LLMService {
             throw new Error('LLM API密鑰未配置');
         }
 
+        // 增加互動次數並檢查階段升級
+        const stageUpgraded = this.config.incrementInteractions();
+        const stageInfo = this.config.getCurrentStageInfo();
+
         // 添加用戶消息到歷史
         this.conversationHistory.push({
             role: 'user',
@@ -117,7 +286,10 @@ class LLMService {
                     message: userMessage,
                     apiKey: null, // 不發送API密鑰，讓後端使用Railway環境變數
                     conversationHistory: this.conversationHistory.slice(-this.config.maxContextLength), // 使用可配置的上下文長度
-                    aiName: document.getElementById('llmName').textContent // 發送當前AI名稱
+                    aiName: document.getElementById('llmName').textContent, // 發送當前AI名稱
+                    currentStage: stageInfo.stage, // 發送當前階段
+                    stageName: stageInfo.name, // 發送階段名稱
+                    totalInteractions: stageInfo.totalInteractions // 發送總互動次數
                 })
             });
 
