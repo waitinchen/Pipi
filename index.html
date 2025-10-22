@@ -15,14 +15,11 @@
             font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
             background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
             min-height: 100vh;
-            min-height: 100dvh; /* 使用動態視窗高度 */
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* 防止iOS Safari的彈跳效果 */
-            position: fixed;
-            width: 100%;
-            height: 100%;
+            margin: 0;
+            padding: 0;
         }
         
         .main-container {
@@ -657,6 +654,48 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        /* 加載狀態 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* 手機版媒體查詢 */
         @media screen and (max-width: 768px) {
             .main-container {
@@ -796,6 +835,12 @@
     </style>
 </head>
 <body>
+    <!-- 加載覆蓋層 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在載入靈芽(LINYA)...</div>
+    </div>
+    
     <div class="main-container">
         <div class="heart-window-container">
             <canvas id="heartWindowCanvas" class="heart-window-canvas" width="500" height="500"></canvas>
@@ -1364,54 +1409,92 @@
         
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🌱 靈芽(LINYA) 視覺版已啟動');
-            console.log('👀 皮皮正在靜靜觀察...');
-            
-            // 設置用戶信息
-            setupUserInfo();
-            
-            // 設置LLM名稱
-            setupLlmName();
-            
-            // 初始化心窗引擎
-            const heartCanvas = document.getElementById('heartWindowCanvas');
-            window.heartEngine = new HeartWindowEngine(heartCanvas);
-            
-            // 初始化LLM配置
-            if (window.llmConfig) {
-                window.llmConfig.loadApiKey();
-            }
-            
-            // 按Enter發送訊息
-            document.getElementById('messageInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-            
-            // 定期更新氣泡位置，確保跟隨皮皮
-            setInterval(updateBubblePosition, 100);
-            
-            // 歡迎訊息
-            setTimeout(() => {
-                showPipiSpeechBubble();
+            try {
+                console.log('🌱 靈芽(LINYA) 視覺版已啟動');
+                console.log('👀 皮皮正在靜靜觀察...');
                 
-                // 如果是LINE用戶，顯示特殊歡迎訊息
-                const urlParams = new URLSearchParams(window.location.search);
-                const lineDisplayName = urlParams.get('line_display_name');
-                if (lineDisplayName) {
-                    setTimeout(() => {
-                        const welcomeMessage = `歡迎 ${decodeURIComponent(lineDisplayName)}！🐰`;
-                        addMessageToChat('llm', welcomeMessage);
-                    }, 3000);
+                // 設置用戶信息
+                setupUserInfo();
+                
+                // 設置LLM名稱
+                setupLlmName();
+                
+                // 初始化心窗引擎
+                const heartCanvas = document.getElementById('heartWindowCanvas');
+                if (heartCanvas) {
+                    window.heartEngine = new HeartWindowEngine(heartCanvas);
                 }
-            }, 2000);
-            
-            // 手機版輸入法遮擋處理
-            setupMobileKeyboardHandling();
-            
-            // 顯示LINE用戶狀態
-            showLineUserStatus();
+                
+                // 初始化LLM配置
+                if (window.llmConfig) {
+                    window.llmConfig.loadApiKey();
+                }
+                
+                // 按Enter發送訊息
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) {
+                    messageInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    });
+                }
+                
+                // 定期更新氣泡位置，確保跟隨皮皮
+                setInterval(updateBubblePosition, 100);
+                
+                // 歡迎訊息
+                setTimeout(() => {
+                    showPipiSpeechBubble();
+                    
+                    // 如果是LINE用戶，顯示特殊歡迎訊息
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const lineDisplayName = urlParams.get('line_display_name');
+                    if (lineDisplayName) {
+                        setTimeout(() => {
+                            const welcomeMessage = `歡迎 ${decodeURIComponent(lineDisplayName)}！🐰`;
+                            addMessageToChat('llm', welcomeMessage);
+                        }, 3000);
+                    }
+                }, 2000);
+                
+                // 手機版輸入法遮擋處理
+                setupMobileKeyboardHandling();
+                
+                // 顯示LINE用戶狀態
+                showLineUserStatus();
+                
+                // 隱藏加載覆蓋層
+                setTimeout(() => {
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.add('hidden');
+                        setTimeout(() => {
+                            loadingOverlay.style.display = 'none';
+                        }, 500);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('初始化錯誤:', error);
+                // 顯示錯誤訊息給用戶
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'message llm';
+                    errorDiv.textContent = '系統初始化出現問題，請重新整理頁面。';
+                    chatMessages.appendChild(errorDiv);
+                }
+                
+                // 即使出錯也要隱藏加載覆蓋層
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 500);
+                }
+            }
         });
         
         // 顯示LINE用戶狀態
