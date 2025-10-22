@@ -1146,7 +1146,7 @@
                 this.interruptionProbability = 0.3; // 30%機率插話
                 this.ownerName = '語氣靈'; // 皮皮知道自己的主人
                 this.lastMentionTime = 0; // 最後一次被提及的時間
-                this.mentionCooldown = 10000; // 10秒冷卻時間
+                this.mentionCooldown = 3000; // 3秒冷卻時間
                 this.shortPhrases = [
                     '嗯嗯～', '哇！', '好棒！', '真的嗎？', '皮皮聽到了！',
                     '好有趣～', '皮皮想說...', '嗯...', '皮皮明白了！',
@@ -1206,11 +1206,17 @@
             // 處理被提及的反應
             handlePipiMention() {
                 const now = Date.now();
-                if (now - this.lastMentionTime < this.mentionCooldown) {
+                const timeSinceLastMention = now - this.lastMentionTime;
+                
+                console.log(`🐻 皮皮被提及，距離上次: ${timeSinceLastMention}ms，冷卻時間: ${this.mentionCooldown}ms`);
+                
+                if (timeSinceLastMention < this.mentionCooldown) {
+                    console.log(`🐻 皮皮還在冷卻中，剩餘: ${this.mentionCooldown - timeSinceLastMention}ms`);
                     return; // 還在冷卻中
                 }
                 
                 this.lastMentionTime = now;
+                console.log('🐻 皮皮開始反應！');
                 
                 // 隨機選擇反應類型
                 const reactionType = Math.random();
@@ -2110,6 +2116,29 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
         window.testPipiLLM = async function() {
             if (window.pipiIntelligence) {
                 await window.pipiIntelligence.performLLMSpeech();
+            }
+        };
+        
+        // 重置皮皮冷卻時間（測試用）
+        window.resetPipiCooldown = function() {
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.lastMentionTime = 0;
+                console.log('🐻 皮皮冷卻時間已重置');
+            }
+        };
+        
+        // 查看皮皮狀態（測試用）
+        window.checkPipiStatus = function() {
+            if (window.pipiIntelligence) {
+                const now = Date.now();
+                const timeSinceLastMention = now - window.pipiIntelligence.lastMentionTime;
+                const remainingCooldown = Math.max(0, window.pipiIntelligence.mentionCooldown - timeSinceLastMention);
+                
+                console.log('🐻 皮皮狀態:');
+                console.log(`- 距離上次提及: ${timeSinceLastMention}ms`);
+                console.log(`- 冷卻時間: ${window.pipiIntelligence.mentionCooldown}ms`);
+                console.log(`- 剩餘冷卻: ${remainingCooldown}ms`);
+                console.log(`- 可以反應: ${remainingCooldown === 0 ? '是' : '否'}`);
             }
         };
         
