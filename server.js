@@ -16,8 +16,11 @@ app.post('/api/claude', async (req, res) => {
     try {
         const { message, apiKey, conversationHistory, aiName } = req.body;
         
-        if (!apiKey) {
-            return res.status(400).json({ error: 'API密鑰未提供' });
+        // 如果沒有提供API密鑰，使用環境變量
+        const finalApiKey = apiKey || process.env.CLAUDE_API_KEY;
+        
+        if (!finalApiKey) {
+            return res.status(400).json({ error: 'API密鑰未提供，請在Railway環境變量中設置CLAUDE_API_KEY' });
         }
 
         // 構建消息數組，只包含用戶和助手消息
