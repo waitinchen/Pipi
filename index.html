@@ -1239,19 +1239,24 @@
             
             // 執行LLM調用說話
             async performLLMSpeech() {
+                console.log('🐻 皮皮開始LLM調用...');
                 try {
                     const response = await this.callPipiLLM();
+                    console.log('🐻 皮皮LLM原始回應:', response);
+                    
                     if (response && response.trim()) {
-                        this.showPipiSpeech(response.trim());
+                        const trimmedResponse = response.trim();
+                        console.log('🐻 皮皮LLM處理後回應:', trimmedResponse);
+                        this.showPipiSpeech(trimmedResponse);
                         this.triggerPipiExpression('happy');
-                        console.log('🐻 皮皮LLM回應:', response);
+                        console.log('🐻 皮皮LLM回應成功:', trimmedResponse);
                     } else {
-                        // 如果LLM失敗，回退到預設短語
+                        console.log('🐻 皮皮LLM回應為空，回退到預設短語');
                         this.performMentionSpeech();
                     }
                 } catch (error) {
                     console.error('🐻 皮皮LLM調用失敗:', error);
-                    // 回退到預設短語
+                    console.log('🐻 皮皮LLM失敗，回退到預設短語');
                     this.performMentionSpeech();
                 }
             }
@@ -1278,31 +1283,46 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
 
 請根據對話內容，以皮皮的身份回應1-7個字。`;
 
+                console.log('🐻 皮皮發送LLM請求...');
+                console.log('🐻 皮皮系統提示詞:', pipiSystemPrompt);
+
+                const requestBody = {
+                    message: '皮皮回應',
+                    apiKey: null,
+                    conversationHistory: [],
+                    aiName: '皮皮',
+                    currentStage: 1,
+                    stageName: '初生',
+                    totalInteractions: 1,
+                    systemPrompt: pipiSystemPrompt
+                };
+
+                console.log('🐻 皮皮請求內容:', requestBody);
+
                 const response = await fetch('/api/claude', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        message: '皮皮回應',
-                        apiKey: null,
-                        conversationHistory: [],
-                        aiName: '皮皮',
-                        currentStage: 1,
-                        stageName: '初生',
-                        totalInteractions: 1,
-                        systemPrompt: pipiSystemPrompt
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
+                console.log('🐻 皮皮LLM響應狀態:', response.status, response.statusText);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('🐻 皮皮LLM HTTP錯誤:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                 }
 
                 const data = await response.json();
+                console.log('🐻 皮皮LLM響應數據:', data);
+
                 if (data.success && data.response) {
+                    console.log('🐻 皮皮LLM成功獲取回應:', data.response);
                     return data.response;
                 } else {
+                    console.error('🐻 皮皮LLM回應失敗:', data.error);
                     throw new Error(data.error || 'LLM回應失敗');
                 }
             }
@@ -2146,6 +2166,21 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                         console.log(`🐻 第 ${i} 次測試`);
                         window.pipiIntelligence.handlePipiMention();
                     }, i * 1000); // 每秒一次
+                }
+            }
+        };
+        
+        // 直接測試皮皮LLM調用（測試用）
+        window.testPipiLLMDirect = async function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 直接測試皮皮LLM調用...');
+                try {
+                    const response = await window.pipiIntelligence.callPipiLLM();
+                    console.log('🐻 皮皮LLM直接測試結果:', response);
+                    return response;
+                } catch (error) {
+                    console.error('🐻 皮皮LLM直接測試失敗:', error);
+                    return null;
                 }
             }
         };
