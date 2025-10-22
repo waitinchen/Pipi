@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>靈芽(LINYA) - 視覺版</title>
     <style>
         * {
@@ -15,9 +15,14 @@
             font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
             background: linear-gradient(135deg, #2D1B69 0%, #1A0B3D 100%);
             min-height: 100vh;
+            min-height: 100dvh; /* 使用動態視窗高度 */
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            /* 防止iOS Safari的彈跳效果 */
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
         
         .main-container {
@@ -27,14 +32,17 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 40px 20px;
+            padding: 20px 15px;
+            /* 手機版調整 */
+            padding-top: env(safe-area-inset-top, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
         }
         
         .heart-window-container {
             position: relative;
-            width: 500px;
-            height: 500px;
-            margin-bottom: 60px;
+            width: min(500px, 80vw);
+            height: min(500px, 80vw);
+            margin-bottom: 20px;
         }
         
         .heart-window-canvas {
@@ -59,31 +67,35 @@
         
         .input-container {
             position: fixed;
-            bottom: 40px;
+            bottom: env(safe-area-inset-bottom, 20px);
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-radius: 30px;
-            padding: 15px 25px;
+            border-radius: 25px;
+            padding: 12px 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            width: 95%;
+            width: calc(100% - 30px);
             max-width: 600px;
+            /* 手機版優化 */
+            margin: 0 15px;
+            z-index: 1000;
         }
         
         .pipi-container {
             position: fixed;
-            bottom: 110px;
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
             left: 50%;
             transform: translateX(-50%);
-            width: 95%;
+            width: calc(100% - 30px);
             max-width: 600px;
             height: 40px;
             pointer-events: none;
+            margin: 0 15px;
         }
         
         .pipi-mini {
@@ -173,8 +185,12 @@
             outline: none;
             color: white;
             font-size: 16px;
-            width: 300px;
-            padding: 10px 15px;
+            width: 100%;
+            padding: 8px 12px;
+            /* 手機版優化 */
+            font-size: 16px; /* 防止iOS縮放 */
+            -webkit-appearance: none;
+            border-radius: 0;
         }
         
         .message-input::placeholder {
@@ -185,8 +201,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 50%;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -195,6 +211,8 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             margin-left: auto;
             flex-shrink: 0;
+            /* 手機版優化 */
+            min-width: 40px;
         }
         
         .send-button:hover {
@@ -213,23 +231,28 @@
         
         .chat-messages {
             position: fixed;
-            top: 80px;
-            left: 20px;
-            right: 20px;
-            bottom: 120px;
+            top: calc(env(safe-area-inset-top, 20px) + 60px);
+            left: 15px;
+            right: 15px;
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 140px);
             overflow-y: auto;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
+            /* 手機版優化 */
+            -webkit-overflow-scrolling: touch;
         }
         
         .message {
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 20px;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
             backdrop-filter: blur(10px);
             animation: fadeIn 0.3s ease;
+            /* 手機版優化 */
+            word-wrap: break-word;
+            word-break: break-word;
         }
         
         .message.user {
@@ -391,24 +414,25 @@
         
         .user-info {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: env(safe-area-inset-top, 20px);
+            right: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            padding: 8px 15px;
-            border-radius: 25px;
+            padding: 6px 12px;
+            border-radius: 20px;
             color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
+            font-size: 13px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            max-width: 200px;
+            max-width: 150px;
+            z-index: 1000;
         }
         
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -425,23 +449,24 @@
         
         .llm-info {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: env(safe-area-inset-top, 20px);
+            left: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            padding: 8px 15px;
-            border-radius: 25px;
+            padding: 6px 12px;
+            border-radius: 20px;
             color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
+            font-size: 13px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
         }
         
         .llm-avatar {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: radial-gradient(circle, #00bfff 0%, #0080ff 50%, #0040ff 100%);
             position: relative;
@@ -610,6 +635,143 @@
         
         .name-edit-btn.cancel {
             background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 手機版媒體查詢 */
+        @media screen and (max-width: 768px) {
+            .main-container {
+                padding: 15px 10px;
+            }
+            
+            .heart-window-container {
+                width: min(400px, 70vw);
+                height: min(400px, 70vw);
+                margin-bottom: 15px;
+            }
+            
+            .input-container {
+                padding: 10px 15px;
+                gap: 8px;
+                border-radius: 20px;
+            }
+            
+            .message-input {
+                font-size: 16px; /* 防止iOS縮放 */
+                padding: 6px 10px;
+            }
+            
+            .send-button {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+            }
+            
+            .send-icon {
+                font-size: 16px;
+            }
+            
+            .chat-messages {
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .message {
+                padding: 10px 14px;
+                border-radius: 16px;
+                font-size: 14px;
+            }
+            
+            .pipi-mini {
+                font-size: 1.5em;
+            }
+            
+            .pipi-speech-bubble {
+                font-size: 12px;
+                padding: 6px 10px;
+                max-width: 150px;
+            }
+            
+            .user-info, .llm-info {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+            
+            .user-avatar, .llm-avatar {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .name-edit-modal {
+                padding: 20px;
+                margin: 0 20px;
+            }
+            
+            .name-edit-input {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+        
+        /* 小屏幕手機 */
+        @media screen and (max-width: 480px) {
+            .main-container {
+                padding: 10px 5px;
+            }
+            
+            .heart-window-container {
+                width: min(300px, 60vw);
+                height: min(300px, 60vw);
+                margin-bottom: 10px;
+            }
+            
+            .input-container {
+                padding: 8px 12px;
+                gap: 6px;
+                margin: 0 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .pipi-container {
+                margin: 0 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .chat-messages {
+                left: 10px;
+                right: 10px;
+                padding: 8px;
+            }
+            
+            .user-info, .llm-info {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .user-info {
+                right: 10px;
+                max-width: 120px;
+            }
+            
+            .llm-info {
+                left: 10px;
+            }
+        }
+        
+        /* 防止輸入法遮擋的額外樣式 */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari */
+            .input-container {
+                position: fixed;
+                bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+            }
+            
+            .chat-messages {
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 120px);
+            }
+            
+            .pipi-container {
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 80px);
+            }
         }
     </style>
 </head>
@@ -1168,7 +1330,72 @@
             setTimeout(() => {
                 showPipiSpeechBubble();
             }, 2000);
+            
+            // 手機版輸入法遮擋處理
+            setupMobileKeyboardHandling();
         });
+        
+        // 手機版輸入法遮擋處理
+        function setupMobileKeyboardHandling() {
+            const input = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const pipiContainer = document.querySelector('.pipi-container');
+            const inputContainer = document.querySelector('.input-container');
+            
+            let initialViewportHeight = window.innerHeight;
+            let isKeyboardOpen = false;
+            
+            // 監聽視窗大小變化
+            window.addEventListener('resize', function() {
+                const currentHeight = window.innerHeight;
+                const heightDifference = initialViewportHeight - currentHeight;
+                
+                // 如果視窗高度減少超過150px，認為是鍵盤打開
+                if (heightDifference > 150 && !isKeyboardOpen) {
+                    isKeyboardOpen = true;
+                    handleKeyboardOpen();
+                } else if (heightDifference <= 150 && isKeyboardOpen) {
+                    isKeyboardOpen = false;
+                    handleKeyboardClose();
+                }
+            });
+            
+            // 監聽輸入框焦點
+            input.addEventListener('focus', function() {
+                setTimeout(() => {
+                    if (!isKeyboardOpen) {
+                        isKeyboardOpen = true;
+                        handleKeyboardOpen();
+                    }
+                }, 300); // 延遲300ms等待鍵盤動畫
+            });
+            
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    isKeyboardOpen = false;
+                    handleKeyboardClose();
+                }, 300);
+            });
+            
+            function handleKeyboardOpen() {
+                // 調整聊天區域高度
+                chatMessages.style.bottom = '200px';
+                
+                // 調整皮皮位置
+                pipiContainer.style.bottom = '160px';
+                
+                // 滾動到最新消息
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+            
+            function handleKeyboardClose() {
+                // 恢復原始位置
+                chatMessages.style.bottom = 'calc(env(safe-area-inset-bottom, 20px) + 140px)';
+                pipiContainer.style.bottom = 'calc(env(safe-area-inset-bottom, 20px) + 80px)';
+            }
+        }
     </script>
 </body>
 </html>
