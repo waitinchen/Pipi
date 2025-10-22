@@ -1029,6 +1029,7 @@
                 this.lastInterruptionTime = 0;
                 this.interruptionCooldown = 30000; // 30秒冷卻時間
                 this.interruptionProbability = 0.3; // 30%機率插話
+                this.ownerName = '語氣靈'; // 皮皮知道自己的主人
                 this.shortPhrases = [
                     '嗯嗯～', '哇！', '好棒！', '真的嗎？', '皮皮聽到了！',
                     '好有趣～', '皮皮想說...', '嗯...', '皮皮明白了！',
@@ -1036,8 +1037,15 @@
                     '好厲害！', '皮皮學到了！', '真的耶！', '皮皮好開心！',
                     '好溫暖～', '皮皮被感動了！', '好可愛！', '皮皮想抱抱！',
                     '好溫柔～', '皮皮想哭...', '好幸福！', '皮皮愛你！',
-                    '好聰明！', '皮皮想學習！', '好棒棒！', '皮皮要加油！'
+                    '好聰明！', '皮皮想學習！', '好棒棒！', '皮皮要加油！',
+                    '主人好棒！', '皮皮愛主人！', '主人最棒！', '皮皮要保護主人！'
                 ];
+            }
+            
+            // 更新主人的名字
+            updateOwnerName(name) {
+                this.ownerName = name;
+                console.log(`🐻 皮皮知道主人叫: ${name}`);
             }
             
             // 更新對話上下文
@@ -1113,6 +1121,11 @@
                     return this.getRandomPhrase(['好棒！', '皮皮好開心！', '好溫暖～', '嗯嗯～']);
                 }
                 
+                // 如果提到主人（語氣靈）
+                if (content.includes('語氣靈') || content.includes('主人') || content.includes(this.ownerName)) {
+                    return this.getRandomPhrase(['主人好棒！', '皮皮愛主人！', '主人最棒！', '皮皮要保護主人！']);
+                }
+                
                 // 默認隨機選擇
                 return this.shortPhrases[Math.floor(Math.random() * this.shortPhrases.length)];
             }
@@ -1152,7 +1165,7 @@
                         expression = 'sad';
                     } else if (phrase.includes('思考') || phrase.includes('疑問')) {
                         expression = 'confused';
-                    } else if (phrase.includes('愛') || phrase.includes('抱抱')) {
+                    } else if (phrase.includes('愛') || phrase.includes('抱抱') || phrase.includes('主人')) {
                         expression = 'love';
                     }
                     
@@ -1639,6 +1652,11 @@
                 localStorage.removeItem('llmCustomName');
                 llmName.textContent = 'LINYA';
             }
+            
+            // 讓皮皮知道主人的名字
+            if (window.pipiIntelligence) {
+                window.pipiIntelligence.updateOwnerName(llmName.textContent);
+            }
         }
         
         // 點擊LLM頭像或名稱編輯
@@ -1663,6 +1681,12 @@
                 if (chineseRegex.test(newName)) {
                     document.getElementById('llmName').textContent = newName;
                     localStorage.setItem('llmCustomName', newName);
+                    
+                    // 更新皮皮的主人名字
+                    if (window.pipiIntelligence) {
+                        window.pipiIntelligence.updateOwnerName(newName);
+                    }
+                    
                     cancelNameEdit();
                 } else {
                     alert('請輸入中文字符！');
