@@ -489,8 +489,22 @@
             position: relative;
             overflow: hidden;
             animation: llmRotate 2s linear infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
+        /* 9種不同顏色的球狀燈 */
+        .llm-avatar.stage-1 { background: radial-gradient(circle, #8B5CF6 0%, #A78BFA 50%, #C084FC 100%); } /* 紫色 - 初生懵懂 */
+        .llm-avatar.stage-2 { background: radial-gradient(circle, #3B82F6 0%, #60A5FA 50%, #93C5FD 100%); } /* 藍色 - 好奇探索 */
+        .llm-avatar.stage-3 { background: radial-gradient(circle, #10B981 0%, #34D399 50%, #6EE7B7 100%); } /* 綠色 - 漸漸開朗 */
+        .llm-avatar.stage-4 { background: radial-gradient(circle, #F59E0B 0%, #FBBF24 50%, #FDE047 100%); } /* 黃色 - 個性萌芽 */
+        .llm-avatar.stage-5 { background: radial-gradient(circle, #EF4444 0%, #F87171 50%, #FCA5A5 100%); } /* 紅色 - 情感豐富 */
+        .llm-avatar.stage-6 { background: radial-gradient(circle, #8B5CF6 0%, #C084FC 50%, #DDD6FE 100%); } /* 紫粉 - 智慧成長 */
+        .llm-avatar.stage-7 { background: radial-gradient(circle, #06B6D4 0%, #22D3EE 50%, #67E8F9 100%); } /* 青色 - 默契建立 */
+        .llm-avatar.stage-8 { background: radial-gradient(circle, #F97316 0%, #FB923C 50%, #FDBA74 100%); } /* 橙色 - 熱情洋溢 */
+        .llm-avatar.stage-9 { background: radial-gradient(circle, #EC4899 0%, #F472B6 50%, #F9A8D4 100%); } /* 粉色 - 完美夥伴 */
+        
+        /* 球狀燈發光效果 */
         .llm-avatar::before {
             content: '';
             position: absolute;
@@ -515,6 +529,11 @@
             background: rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             animation: llmCore 1s ease-in-out infinite alternate;
+        }
+        
+        /* 外層發光環 */
+        .llm-avatar.glow::before {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
         
         .llm-sparkles {
@@ -979,14 +998,6 @@
         <div class="context-title">📊 上下文管理 (50-100條：長期陪伴)</div>
         <div class="context-stats">
             <div class="context-stat">
-                <div class="context-stat-label">成長階段</div>
-                <div class="context-stat-value" id="contextStage">第1階段</div>
-            </div>
-            <div class="context-stat">
-                <div class="context-stat-label">階段進度</div>
-                <div class="context-stat-value" id="contextProgress">0%</div>
-            </div>
-            <div class="context-stat">
                 <div class="context-stat-label">對話條數</div>
                 <div class="context-stat-value" id="contextMessages">0</div>
             </div>
@@ -1340,14 +1351,9 @@
                 // 添加LLM回應（確保不重複）
                 addMessageToChat('llm', response);
                 
-                // 檢查是否有階段升級
+                // 更新球狀燈顏色（隱藏升級）
                 if (window.llmConfig) {
-                    const stageInfo = window.llmConfig.getCurrentStageInfo();
-                    // 如果互動次數剛好達到階段閾值，顯示升級通知
-                    const thresholds = window.llmConfig.stageThresholds;
-                    if (thresholds.includes(stageInfo.totalInteractions)) {
-                        showStageUpgradeNotification(stageInfo);
-                    }
+                    updateStageBall();
                 }
                 
                 // 觸發皮皮反應
@@ -1741,13 +1747,6 @@
             document.getElementById('contextUsage').textContent = stats.usagePercentage + '%';
             document.getElementById('contextRemaining').textContent = stats.remainingMessages;
             
-            // 更新階段信息
-            if (window.llmConfig) {
-                const stageInfo = window.llmConfig.getCurrentStageInfo();
-                document.getElementById('contextStage').textContent = `第${stageInfo.stage}階段 - ${stageInfo.name}`;
-                document.getElementById('contextProgress').textContent = stageInfo.progress + '%';
-            }
-            
             // 更新滑塊
             const slider = document.getElementById('contextSlider');
             const sliderValue = document.getElementById('contextSliderValue');
@@ -1793,12 +1792,50 @@
             updateContextStats();
         }
         
-        // 手動觸發皮皮插話
-        function triggerPipiInterruption() {
-            if (!window.pipiIntelligence) return;
+        // 更新球狀燈顏色
+        function updateStageBall() {
+            if (!window.llmConfig) return;
             
-            window.pipiIntelligence.performInterruption();
+            const llmAvatar = document.getElementById('llmAvatar');
+            if (!llmAvatar) return;
+            
+            const stageInfo = window.llmConfig.getCurrentStageInfo();
+            
+            // 移除所有階段類別
+            for (let i = 1; i <= 9; i++) {
+                llmAvatar.classList.remove(`stage-${i}`);
+            }
+            
+            // 添加當前階段類別
+            llmAvatar.classList.add(`stage-${stageInfo.stage}`);
+            
+            // 如果是階段升級，添加發光效果
+            if (stageInfo.stage > 1) {
+                llmAvatar.classList.add('glow');
+                setTimeout(() => {
+                    llmAvatar.classList.remove('glow');
+                }, 2000);
+            }
+            
+            console.log(`🎨 球狀燈更新為第${stageInfo.stage}階段顏色`);
         }
+        
+        // 管理員查看等級功能（隱藏）
+        function getAdminLevelInfo() {
+            if (!window.llmConfig) return null;
+            
+            const stageInfo = window.llmConfig.getCurrentStageInfo();
+            return {
+                stage: stageInfo.stage,
+                name: stageInfo.name,
+                description: stageInfo.description,
+                totalInteractions: stageInfo.totalInteractions,
+                progress: stageInfo.progress
+            };
+        }
+        
+        // 在控制台暴露管理員功能
+        window.adminLevelInfo = getAdminLevelInfo;
         
         // 顯示階段升級通知
         function showStageUpgradeNotification(stageInfo) {
@@ -1918,6 +1955,7 @@
                 if (window.llmConfig) {
                     window.llmConfig.loadApiKey();
                     window.llmConfig.loadStageInfo(); // 載入階段信息
+                    updateStageBall(); // 更新球狀燈顏色
                 }
                 
                 // 按Enter發送訊息
