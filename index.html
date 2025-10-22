@@ -1146,24 +1146,9 @@
                 this.interruptionProbability = 0.3; // 30%機率插話
                 this.ownerName = '語氣靈'; // 皮皮知道自己的主人
                 this.lastMentionTime = 0; // 最後一次被提及的時間
-                this.mentionCooldown = 3000; // 3秒冷卻時間
-                this.shortPhrases = [
-                    '嗯嗯～', '哇！', '好棒！', '真的嗎？', '皮皮聽到了！',
-                    '好有趣～', '皮皮想說...', '嗯...', '皮皮明白了！',
-                    '好神奇～', '皮皮在思考...', '哇塞！', '皮皮覺得...',
-                    '好厲害！', '皮皮學到了！', '真的耶！', '皮皮好開心！',
-                    '好溫暖～', '皮皮被感動了！', '好可愛！', '皮皮想抱抱！',
-                    '好溫柔～', '皮皮想哭...', '好幸福！', '皮皮愛你！',
-                    '好聰明！', '皮皮想學習！', '好棒棒！', '皮皮要加油！',
-                    '主人好棒！', '皮皮愛主人！', '主人最棒！', '皮皮要保護主人！'
-                ];
+                this.mentionCooldown = 3000; // 3秒冷卻時間（已不使用）
                 
-                // 皮皮被提及時的反應短語
-                this.mentionPhrases = [
-                    '皮皮在這裡！', '叫我嗎？', '皮皮聽到了！', '嗯嗯～',
-                    '皮皮在！', '什麼事？', '皮皮來了！', '怎麼了？',
-                    '皮皮很開心！', '皮皮在聽！', '皮皮明白！', '皮皮知道！'
-                ];
+                // 已移除罐頭短語，只使用LLM回應
             }
             
             // 更新主人的名字
@@ -1190,8 +1175,7 @@
                     this.handlePipiMention();
                 }
                 
-                // 檢查是否需要插話
-                this.checkForInterruption();
+                // 已移除插話功能，只保留被提及時的反應
             }
             
             // 檢查是否被提及
@@ -1214,28 +1198,11 @@
                 this.lastMentionTime = now;
                 console.log('🐻 皮皮開始反應！');
                 
-                // 隨機選擇反應類型
-                const reactionType = Math.random();
-                
-                if (reactionType < 0.8) {
-                    // 80%機率調用LLM說話
-                    this.performLLMSpeech();
-                } else {
-                    // 20%機率動作反應
-                    this.performMentionAction();
-                }
+                // 只使用LLM回應，不使用罐頭回應
+                this.performLLMSpeech();
             }
             
-            // 執行被提及時的說話
-            performMentionSpeech() {
-                const phrase = this.getRandomPhrase(this.mentionPhrases);
-                this.showPipiSpeech(phrase);
-                
-                // 觸發開心表情
-                this.triggerPipiExpression('happy');
-                
-                console.log('🐻 皮皮被提及，說話:', phrase);
-            }
+            // 已移除罐頭回應功能，只保留LLM回應
             
             // 執行LLM調用說話
             async performLLMSpeech() {
@@ -1251,13 +1218,15 @@
                         this.triggerPipiExpression('happy');
                         console.log('🐻 皮皮LLM回應成功:', trimmedResponse);
                     } else {
-                        console.log('🐻 皮皮LLM回應為空，回退到預設短語');
-                        this.performMentionSpeech();
+                        console.log('🐻 皮皮LLM回應為空，顯示錯誤信息');
+                        this.showPipiSpeech('LLM無回應');
+                        this.triggerPipiExpression('confused');
                     }
                 } catch (error) {
                     console.error('🐻 皮皮LLM調用失敗:', error);
-                    console.log('🐻 皮皮LLM失敗，回退到預設短語');
-                    this.performMentionSpeech();
+                    console.log('🐻 皮皮LLM失敗，顯示錯誤信息');
+                    this.showPipiSpeech('LLM錯誤');
+                    this.triggerPipiExpression('sad');
                 }
             }
             
@@ -1327,11 +1296,7 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                 }
             }
             
-            // 執行被提及時的動作
-            performMentionAction() {
-                this.triggerPipiAction('mention');
-                console.log('🐻 皮皮被提及，執行動作反應');
-            }
+            // 已移除動作反應功能，只保留LLM回應
             
             // 觸發皮皮動作
             triggerPipiAction(actionType) {
@@ -2151,8 +2116,9 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                 
                 console.log('🐻 皮皮狀態:');
                 console.log(`- 距離上次提及: ${timeSinceLastMention}ms`);
-                console.log(`- 冷卻限制: 已移除`);
-                console.log(`- 反應機率: 80% LLM說話, 20% 動作`);
+                console.log(`- 反應模式: 僅LLM回應`);
+                console.log(`- 罐頭回應: 已移除`);
+                console.log(`- 動作反應: 已移除`);
                 console.log(`- 可以反應: 是（無冷卻限制）`);
             }
         };
