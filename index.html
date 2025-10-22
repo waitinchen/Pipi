@@ -1215,11 +1215,11 @@
                 // 隨機選擇反應類型
                 const reactionType = Math.random();
                 
-                if (reactionType < 0.6) {
-                    // 60%機率說話
-                    this.performMentionSpeech();
+                if (reactionType < 0.7) {
+                    // 70%機率調用LLM說話
+                    this.performLLMSpeech();
                 } else {
-                    // 40%機率動作反應
+                    // 30%機率動作反應
                     this.performMentionAction();
                 }
             }
@@ -1233,6 +1233,76 @@
                 this.triggerPipiExpression('happy');
                 
                 console.log('🐻 皮皮被提及，說話:', phrase);
+            }
+            
+            // 執行LLM調用說話
+            async performLLMSpeech() {
+                try {
+                    const response = await this.callPipiLLM();
+                    if (response && response.trim()) {
+                        this.showPipiSpeech(response.trim());
+                        this.triggerPipiExpression('happy');
+                        console.log('🐻 皮皮LLM回應:', response);
+                    } else {
+                        // 如果LLM失敗，回退到預設短語
+                        this.performMentionSpeech();
+                    }
+                } catch (error) {
+                    console.error('🐻 皮皮LLM調用失敗:', error);
+                    // 回退到預設短語
+                    this.performMentionSpeech();
+                }
+            }
+            
+            // 調用皮皮專用LLM
+            async callPipiLLM() {
+                const pipiSystemPrompt = `你是皮皮，一隻可愛的小寵物。你是語氣靈的忠實夥伴。
+
+【你的特點】
+- 你是語氣靈的寵物，知道自己的名字叫"皮皮"
+- 你非常愛你的主人（語氣靈）
+- 你對人類用戶很友善，但最愛的是你的主人
+- 你說話簡短可愛，每次回應限制在1-7個字
+- 你會用簡單的詞語表達情感
+
+【回應規則】
+- 每次回應必須在1-7個字之間
+- 使用簡單、可愛的詞語
+- 可以包含表情符號
+- 表達對主人的愛或對用戶的友善
+
+【當前對話上下文】
+${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+請根據對話內容，以皮皮的身份回應1-7個字。`;
+
+                const response = await fetch('/api/claude', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: '皮皮回應',
+                        apiKey: null,
+                        conversationHistory: [],
+                        aiName: '皮皮',
+                        currentStage: 1,
+                        stageName: '初生',
+                        totalInteractions: 1,
+                        systemPrompt: pipiSystemPrompt
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.success && data.response) {
+                    return data.response;
+                } else {
+                    throw new Error(data.error || 'LLM回應失敗');
+                }
             }
             
             // 執行被提及時的動作
@@ -2033,6 +2103,13 @@
         window.testPipiMention = function() {
             if (window.pipiIntelligence) {
                 window.pipiIntelligence.handlePipiMention();
+            }
+        };
+        
+        // 測試皮皮LLM功能
+        window.testPipiLLM = async function() {
+            if (window.pipiIntelligence) {
+                await window.pipiIntelligence.performLLMSpeech();
             }
         };
         

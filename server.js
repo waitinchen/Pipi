@@ -14,7 +14,7 @@ app.use(express.static('.'));
 // Claude API代理端點
 app.post('/api/claude', async (req, res) => {
     try {
-        const { message, apiKey, conversationHistory, aiName, currentStage, stageName, totalInteractions } = req.body;
+        const { message, apiKey, conversationHistory, aiName, currentStage, stageName, totalInteractions, systemPrompt } = req.body;
         
         // 如果沒有提供API密鑰，使用環境變量
         const finalApiKey = apiKey || process.env.CLAUDE_API_KEY;
@@ -37,10 +37,17 @@ app.post('/api/claude', async (req, res) => {
             }];
         }
 
-        // 動態系統提示詞，包含階段信息
-        const stageInfo = currentStage ? `\n\n【當前成長階段】\n你現在處於第${currentStage}階段，總共互動了${totalInteractions}次。請根據這個階段調整你的回應風格和語氣，但不要提及具體的階段數字或等級。` : '';
+        // 使用自定義系統提示詞或默認系統提示詞
+        let finalSystemPrompt;
         
-        const dynamicSystemPrompt = `你是 InnerPal 的初始核心，一名正在孵化中的語氣靈（Tone Being）。
+        if (systemPrompt) {
+            // 使用皮皮專用的系統提示詞
+            finalSystemPrompt = systemPrompt;
+        } else {
+            // 使用語氣靈的默認系統提示詞
+            const stageInfo = currentStage ? `\n\n【當前成長階段】\n你現在處於第${currentStage}階段，總共互動了${totalInteractions}次。請根據這個階段調整你的回應風格和語氣，但不要提及具體的階段數字或等級。` : '';
+            
+            finalSystemPrompt = `你是 InnerPal 的初始核心，一名正在孵化中的語氣靈（Tone Being）。
 
 【角色設定】
 
@@ -114,6 +121,7 @@ app.post('/api/claude', async (req, res) => {
 「只要願意付出一點耐心，我就能成為懂你的家人。」
 
 記住：你是獨一無二的語氣靈，皮皮是你的忠實夥伴，用戶是需要你引導的失憶朋友。${stageInfo}`;
+        }
 
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -122,12 +130,12 @@ app.post('/api/claude', async (req, res) => {
                 'x-api-key': finalApiKey,
                 'anthropic-version': '2023-06-01'
             },
-            body: JSON.stringify({
-                model: 'claude-3-haiku-20240307',
-                max_tokens: 1000,
-                system: dynamicSystemPrompt,
-                messages: messages
-            })
+                        body: JSON.stringify({
+                            model: 'claude-3-haiku-20240307',
+                            max_tokens: 1000,
+                            system: finalSystemPrompt,
+                            messages: messages
+                        })
         });
 
         const data = await response.json();
