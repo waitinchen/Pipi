@@ -31,9 +31,9 @@ class LLMConfig {
         return this.apiKey;
     }
 
-    // 檢查是否已配置API密鑰
+    // 檢查是否已配置API密鑰 - 總是返回true，讓後端處理API密鑰
     isConfigured() {
-        return this.apiKey && this.apiKey.length > 0;
+        return true; // 總是返回true，讓後端使用Railway環境變數
     }
 }
 
@@ -63,7 +63,7 @@ class LLMService {
                 },
                 body: JSON.stringify({
                     message: userMessage,
-                    apiKey: this.config.apiKey,
+                    apiKey: null, // 不發送API密鑰，讓後端使用Railway環境變數
                     conversationHistory: this.conversationHistory.slice(-10), // 只發送最近10條對話
                     aiName: document.getElementById('llmName').textContent // 發送當前AI名稱
                 })
