@@ -410,9 +410,9 @@
         }
         
         .user-info {
-            position: fixed;
-            top: env(safe-area-inset-top, 20px);
-            right: 15px;
+            position: fixed !important;
+            top: env(safe-area-inset-top, 20px) !important;
+            right: 15px !important;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -807,7 +807,8 @@
             }
             
             .user-info {
-                right: 10px;
+                right: 10px !important;
+                top: env(safe-area-inset-top, 20px) !important;
                 max-width: 120px;
             }
             
@@ -1306,6 +1307,15 @@
             const userName = document.getElementById('userName');
             const userAvatar = document.getElementById('userAvatar');
             const userInfo = document.getElementById('userInfo');
+            
+            // 確保用戶信息在右上角
+            if (userInfo) {
+                userInfo.style.position = 'fixed';
+                userInfo.style.top = 'env(safe-area-inset-top, 20px)';
+                userInfo.style.right = '15px';
+                userInfo.style.zIndex = '1000';
+                console.log('📍 用戶信息位置已設置到右上角');
+            }
             
             // 從URL參數獲取LINE用戶信息
             const urlParams = new URLSearchParams(window.location.search);
