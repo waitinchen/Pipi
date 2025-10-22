@@ -428,6 +428,26 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             max-width: 150px;
             z-index: 1000;
+            /* LINE用戶指示器 */
+            position: relative;
+        }
+        
+        .user-info.line-user {
+            border: 1px solid rgba(0, 195, 0, 0.5);
+            background: rgba(0, 195, 0, 0.1);
+        }
+        
+        .user-info.line-user::before {
+            content: 'LINE';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #00C300;
+            color: white;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
         }
         
         .user-avatar {
@@ -1240,9 +1260,55 @@
         function setupUserInfo() {
             const userName = document.getElementById('userName');
             const userAvatar = document.getElementById('userAvatar');
+            const userInfo = document.getElementById('userInfo');
             
-            // 默認頭像
-            userAvatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM2MzY2RjEiLz4KPHBhdGggZD0iTTE2IDhDMTguMjA5MSA4IDIwIDkuNzkwODYgMjAgMTJDMjAgMTQuMjA5MSAxOC4yMDkxIDE2IDE2IDE2QzEzLjc5MDkgMTYgMTIgMTQuMjA5MSAxMiAxMkMxMiA5Ljc5MDg2IDEzLjc5MDkgOCAxNiA4WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE2IDIwQzE5LjMxMzcgMjAgMjIgMjIuNjg2MyAyMiAyNlYyOEgyNlYyNkMyNiAyMi42ODYzIDI5LjMxMzcgMjAgMzIgMjBIMTYiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=';
+            // 從URL參數獲取LINE用戶信息
+            const urlParams = new URLSearchParams(window.location.search);
+            const lineUid = urlParams.get('line_uid');
+            const lineDisplayName = urlParams.get('line_display_name');
+            const lineAvatarUrl = urlParams.get('line_avatar_url');
+            
+            // 如果有LINE用戶信息，使用LINE數據
+            if (lineDisplayName) {
+                userName.textContent = decodeURIComponent(lineDisplayName);
+                userInfo.classList.add('line-user'); // 添加LINE用戶樣式
+                console.log('🐰 LINE用戶登入:', lineDisplayName);
+            } else {
+                userName.textContent = '用戶';
+                userInfo.classList.remove('line-user'); // 移除LINE用戶樣式
+            }
+            
+            // 設置頭像
+            if (lineAvatarUrl) {
+                userAvatar.src = decodeURIComponent(lineAvatarUrl);
+                userAvatar.alt = lineDisplayName || '用戶頭像';
+                console.log('🖼️ LINE頭像載入:', lineAvatarUrl);
+            } else {
+                // 默認頭像
+                userAvatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiM2MzY2RjEiLz4KPHBhdGggZD0iTTE2IDhDMTguMjA5MSA4IDIwIDkuNzkwODYgMjAgMTJDMjAgMTQuMjA5MSAxOC4yMDkxIDE2IDE2IDE2QzEzLjc5MDkgMTYgMTIgMTQuMjA5MSAxMiAxMkMxMiA5Ljc5MDg2IDEzLjc5MDkgOCAxNiA4WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE2IDIwQzE5LjMxMzcgMjAgMjIgMjIuNjg2MyAyMiAyNlYyOEgyNlYyNkMyNiAyMi42ODYzIDI5LjMxMzcgMjAgMzIgMjBIMTYiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=';
+            }
+            
+            // 保存LINE用戶信息到localStorage
+            if (lineUid) {
+                localStorage.setItem('line_uid', lineUid);
+                localStorage.setItem('line_display_name', lineDisplayName || '');
+                localStorage.setItem('line_avatar_url', lineAvatarUrl || '');
+            }
+            
+            // 如果沒有URL參數，嘗試從localStorage載入
+            if (!lineDisplayName) {
+                const savedDisplayName = localStorage.getItem('line_display_name');
+                const savedAvatarUrl = localStorage.getItem('line_avatar_url');
+                
+                if (savedDisplayName) {
+                    userName.textContent = savedDisplayName;
+                    userInfo.classList.add('line-user');
+                }
+                
+                if (savedAvatarUrl) {
+                    userAvatar.src = savedAvatarUrl;
+                }
+            }
         }
         
         // 設置LLM名稱
@@ -1329,11 +1395,42 @@
             // 歡迎訊息
             setTimeout(() => {
                 showPipiSpeechBubble();
+                
+                // 如果是LINE用戶，顯示特殊歡迎訊息
+                const urlParams = new URLSearchParams(window.location.search);
+                const lineDisplayName = urlParams.get('line_display_name');
+                if (lineDisplayName) {
+                    setTimeout(() => {
+                        const welcomeMessage = `歡迎 ${decodeURIComponent(lineDisplayName)}！🐰`;
+                        addMessageToChat('llm', welcomeMessage);
+                    }, 3000);
+                }
             }, 2000);
             
             // 手機版輸入法遮擋處理
             setupMobileKeyboardHandling();
+            
+            // 顯示LINE用戶狀態
+            showLineUserStatus();
         });
+        
+        // 顯示LINE用戶狀態
+        function showLineUserStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lineUid = urlParams.get('line_uid');
+            const lineDisplayName = urlParams.get('line_display_name');
+            
+            if (lineUid && lineDisplayName) {
+                console.log('🔗 LINE用戶狀態:');
+                console.log('  UID:', lineUid);
+                console.log('  暱稱:', decodeURIComponent(lineDisplayName));
+                console.log('  頭像:', urlParams.get('line_avatar_url'));
+                
+                // 在控制台顯示LINE用戶信息
+                const userInfo = document.getElementById('userInfo');
+                userInfo.title = `LINE用戶: ${decodeURIComponent(lineDisplayName)} (${lineUid})`;
+            }
+        }
         
         // 手機版輸入法遮擋處理
         function setupMobileKeyboardHandling() {
