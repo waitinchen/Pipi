@@ -654,6 +654,76 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        /* 上下文管理面板 */
+        .context-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: none;
+            min-width: 400px;
+        }
+        
+        .context-panel.show {
+            display: block;
+        }
+        
+        .context-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .context-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .context-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .context-stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .context-stat-value {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .context-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .context-slider {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .context-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
         /* 加載狀態 */
         .loading-overlay {
             position: fixed;
@@ -873,7 +943,7 @@
     </div>
     
     <div class="llm-info" id="llmInfo">
-        <div class="llm-avatar" id="llmAvatar" onclick="editLlmName()">
+        <div class="llm-avatar" id="llmAvatar" onclick="editLlmName()" ondblclick="openContextPanel()" title="單擊編輯名稱，雙擊管理上下文">
             <div class="llm-sparkles">
                 <div class="llm-sparkle"></div>
                 <div class="llm-sparkle"></div>
@@ -901,6 +971,39 @@
         <div class="name-edit-buttons">
             <button class="name-edit-btn" onclick="saveLlmName()">保存</button>
             <button class="name-edit-btn cancel" onclick="cancelNameEdit()">取消</button>
+        </div>
+    </div>
+    
+    <!-- 上下文管理面板 -->
+    <div class="context-panel" id="contextPanel">
+        <div class="context-title">📊 上下文管理</div>
+        <div class="context-stats">
+            <div class="context-stat">
+                <div class="context-stat-label">對話條數</div>
+                <div class="context-stat-value" id="contextMessages">0</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">估算Tokens</div>
+                <div class="context-stat-value" id="contextTokens">0</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">使用率</div>
+                <div class="context-stat-value" id="contextUsage">0%</div>
+            </div>
+            <div class="context-stat">
+                <div class="context-stat-label">剩餘空間</div>
+                <div class="context-stat-value" id="contextRemaining">0</div>
+            </div>
+        </div>
+        <div class="context-controls">
+            <span style="color: white; font-size: 14px;">上下文長度:</span>
+            <input type="range" class="context-slider" id="contextSlider" min="10" max="100" value="50">
+            <span style="color: white; font-size: 14px;" id="contextSliderValue">50</span>
+        </div>
+        <div class="context-buttons">
+            <button class="name-edit-btn" onclick="compressContext()">🗜️ 壓縮</button>
+            <button class="name-edit-btn" onclick="clearContext()">🗑️ 清空</button>
+            <button class="name-edit-btn cancel" onclick="closeContextPanel()">關閉</button>
         </div>
     </div>
 
@@ -1417,6 +1520,55 @@
             modal.classList.remove('show');
         }
         
+        // 上下文管理功能
+        function openContextPanel() {
+            const panel = document.getElementById('contextPanel');
+            panel.classList.add('show');
+            updateContextStats();
+        }
+        
+        function closeContextPanel() {
+            const panel = document.getElementById('contextPanel');
+            panel.classList.remove('show');
+        }
+        
+        function updateContextStats() {
+            if (!window.llmService) return;
+            
+            const stats = window.llmService.getContextStats();
+            document.getElementById('contextMessages').textContent = stats.totalMessages;
+            document.getElementById('contextTokens').textContent = stats.estimatedTokens.toLocaleString();
+            document.getElementById('contextUsage').textContent = stats.usagePercentage + '%';
+            document.getElementById('contextRemaining').textContent = stats.remainingMessages;
+            
+            // 更新滑塊
+            const slider = document.getElementById('contextSlider');
+            const sliderValue = document.getElementById('contextSliderValue');
+            slider.value = window.llmConfig.maxContextLength;
+            sliderValue.textContent = window.llmConfig.maxContextLength;
+        }
+        
+        function compressContext() {
+            if (!window.llmService) return;
+            
+            window.llmService.compressContext();
+            updateContextStats();
+            
+            // 顯示壓縮結果
+            const stats = window.llmService.getContextStats();
+            addMessageToChat('llm', `🗜️ 上下文已壓縮至 ${stats.totalMessages} 條對話`);
+        }
+        
+        function clearContext() {
+            if (!window.llmService) return;
+            
+            if (confirm('確定要清空所有對話歷史嗎？')) {
+                window.llmService.clearHistory();
+                updateContextStats();
+                addMessageToChat('llm', '🗑️ 對話歷史已清空');
+            }
+        }
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             try {
@@ -1474,6 +1626,9 @@
                 // 顯示LINE用戶狀態
                 showLineUserStatus();
                 
+                // 初始化上下文管理
+                initializeContextManagement();
+                
                 // 隱藏加載覆蓋層
                 setTimeout(() => {
                     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -1523,6 +1678,28 @@
                 const userInfo = document.getElementById('userInfo');
                 userInfo.title = `LINE用戶: ${decodeURIComponent(lineDisplayName)} (${lineUid})`;
             }
+        }
+        
+        // 初始化上下文管理
+        function initializeContextManagement() {
+            const slider = document.getElementById('contextSlider');
+            const sliderValue = document.getElementById('contextSliderValue');
+            
+            if (slider && sliderValue) {
+                slider.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    sliderValue.textContent = value;
+                    window.llmConfig.setMaxContextLength(value);
+                    updateContextStats();
+                });
+            }
+            
+            // 定期更新上下文統計
+            setInterval(() => {
+                if (document.getElementById('contextPanel').classList.contains('show')) {
+                    updateContextStats();
+                }
+            }, 2000);
         }
         
         // 手機版輸入法遮擋處理
