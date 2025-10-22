@@ -1208,24 +1208,20 @@
                 const now = Date.now();
                 const timeSinceLastMention = now - this.lastMentionTime;
                 
-                console.log(`🐻 皮皮被提及，距離上次: ${timeSinceLastMention}ms，冷卻時間: ${this.mentionCooldown}ms`);
+                console.log(`🐻 皮皮被提及，距離上次: ${timeSinceLastMention}ms`);
                 
-                if (timeSinceLastMention < this.mentionCooldown) {
-                    console.log(`🐻 皮皮還在冷卻中，剩餘: ${this.mentionCooldown - timeSinceLastMention}ms`);
-                    return; // 還在冷卻中
-                }
-                
+                // 移除冷卻限制，每次叫皮皮都有反應
                 this.lastMentionTime = now;
                 console.log('🐻 皮皮開始反應！');
                 
                 // 隨機選擇反應類型
                 const reactionType = Math.random();
                 
-                if (reactionType < 0.7) {
-                    // 70%機率調用LLM說話
+                if (reactionType < 0.8) {
+                    // 80%機率調用LLM說話
                     this.performLLMSpeech();
                 } else {
-                    // 30%機率動作反應
+                    // 20%機率動作反應
                     this.performMentionAction();
                 }
             }
@@ -2132,13 +2128,25 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             if (window.pipiIntelligence) {
                 const now = Date.now();
                 const timeSinceLastMention = now - window.pipiIntelligence.lastMentionTime;
-                const remainingCooldown = Math.max(0, window.pipiIntelligence.mentionCooldown - timeSinceLastMention);
                 
                 console.log('🐻 皮皮狀態:');
                 console.log(`- 距離上次提及: ${timeSinceLastMention}ms`);
-                console.log(`- 冷卻時間: ${window.pipiIntelligence.mentionCooldown}ms`);
-                console.log(`- 剩餘冷卻: ${remainingCooldown}ms`);
-                console.log(`- 可以反應: ${remainingCooldown === 0 ? '是' : '否'}`);
+                console.log(`- 冷卻限制: 已移除`);
+                console.log(`- 反應機率: 80% LLM說話, 20% 動作`);
+                console.log(`- 可以反應: 是（無冷卻限制）`);
+            }
+        };
+        
+        // 測試皮皮連續反應（測試用）
+        window.testPipiContinuous = function(count = 3) {
+            if (window.pipiIntelligence) {
+                console.log(`🐻 開始測試皮皮連續反應 ${count} 次`);
+                for (let i = 1; i <= count; i++) {
+                    setTimeout(() => {
+                        console.log(`🐻 第 ${i} 次測試`);
+                        window.pipiIntelligence.handlePipiMention();
+                    }, i * 1000); // 每秒一次
+                }
             }
         };
         
