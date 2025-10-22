@@ -65,8 +65,9 @@
         .input-container {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
-            left: 50%;
-            transform: translateX(-50%);
+            left: 2%;
+            right: 2%;
+            width: 96%;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -76,23 +77,21 @@
             padding: 12px 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            width: calc(100% - 30px);
-            max-width: 600px;
+            max-width: none;
             /* 手機版優化 */
-            margin: 0 15px;
+            margin: 0;
             z-index: 1000;
         }
         
         .pipi-container {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 30px);
-            max-width: 600px;
+            left: 2%;
+            right: 2%;
+            width: 96%;
             height: 40px;
             pointer-events: none;
-            margin: 0 15px;
+            margin: 0;
         }
         
         .pipi-mini {
@@ -229,8 +228,9 @@
         .chat-messages {
             position: fixed;
             top: calc(env(safe-area-inset-top, 20px) + 80px);
-            left: 15px;
-            right: 15px;
+            left: 2%;
+            right: 2%;
+            width: 96%;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 140px);
             overflow-y: auto;
             padding: 15px;
@@ -412,7 +412,7 @@
         .user-info {
             position: fixed !important;
             top: calc(env(safe-area-inset-top, 20px) + 20px) !important;
-            right: 15px !important;
+            right: 2% !important;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -467,7 +467,7 @@
         .llm-info {
             position: fixed;
             top: calc(env(safe-area-inset-top, 20px) + 20px);
-            left: 15px;
+            left: 2%;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -808,7 +808,10 @@
         /* 手機版媒體查詢 */
         @media screen and (max-width: 768px) {
             .main-container {
-                padding: 25px 10px;
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
             }
             
             .heart-window-container {
@@ -821,6 +824,8 @@
                 padding: 10px 15px;
                 gap: 8px;
                 border-radius: 20px;
+                width: calc(100% - 4%);
+                margin: 0 2%;
             }
             
             .message-input {
@@ -841,6 +846,9 @@
             .chat-messages {
                 padding: 10px;
                 gap: 10px;
+                left: 2%;
+                right: 2%;
+                width: 96%;
             }
             
             .message {
@@ -866,12 +874,12 @@
             
             .user-info {
                 max-width: 120px;
-                right: 10px !important;
+                right: 2% !important;
                 top: calc(env(safe-area-inset-top, 20px) + 15px) !important;
             }
             
             .llm-info {
-                left: 10px;
+                left: 2%;
             }
             
             .user-avatar, .llm-avatar {
@@ -893,7 +901,10 @@
         /* 小屏幕手機 */
         @media screen and (max-width: 480px) {
             .main-container {
-                padding: 20px 5px;
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
             }
             
             .heart-window-container {
@@ -905,18 +916,19 @@
             .input-container {
                 padding: 8px 12px;
                 gap: 6px;
-                margin: 0 10px;
-                width: calc(100% - 20px);
+                margin: 0 2%;
+                width: calc(100% - 4%);
             }
             
             .pipi-container {
-                margin: 0 10px;
-                width: calc(100% - 20px);
+                margin: 0 2%;
+                width: calc(100% - 4%);
             }
             
             .chat-messages {
-                left: 10px;
-                right: 10px;
+                left: 2%;
+                right: 2%;
+                width: 96%;
                 padding: 8px;
             }
             
@@ -926,13 +938,13 @@
             }
             
             .user-info {
-                right: 8px !important;
+                right: 2% !important;
                 top: calc(env(safe-area-inset-top, 20px) + 10px) !important;
                 max-width: 100px;
             }
             
             .llm-info {
-                left: 8px;
+                left: 2%;
             }
             
             .user-avatar, .llm-avatar {
@@ -943,18 +955,41 @@
         
         /* 超小屏幕手機 (iPhone SE等) */
         @media screen and (max-width: 375px) {
+            .main-container {
+                padding: 2% 2%;
+                margin: 0;
+                width: 96%;
+                max-width: none;
+            }
+            
+            .input-container {
+                margin: 0 2%;
+                width: calc(100% - 4%);
+            }
+            
+            .pipi-container {
+                margin: 0 2%;
+                width: calc(100% - 4%);
+            }
+            
+            .chat-messages {
+                left: 2%;
+                right: 2%;
+                width: 96%;
+            }
+            
             .user-info {
                 padding: 2px 6px;
                 font-size: 9px;
                 max-width: 80px;
-                right: 5px !important;
+                right: 2% !important;
                 top: calc(env(safe-area-inset-top, 20px) + 8px) !important;
             }
             
             .llm-info {
                 padding: 2px 6px;
                 font-size: 9px;
-                left: 5px;
+                left: 2%;
             }
             
             .user-avatar, .llm-avatar {
