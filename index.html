@@ -29,10 +29,10 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 20px 15px;
-            /* 手機版調整 */
-            padding-top: env(safe-area-inset-top, 20px);
-            padding-bottom: env(safe-area-inset-bottom, 20px);
+            padding: 40px 15px;
+            /* 手機版調整 - 增加上下間距 */
+            padding-top: calc(env(safe-area-inset-top, 20px) + 40px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 40px);
         }
         
         .heart-window-container {
@@ -64,7 +64,7 @@
         
         .input-container {
             position: fixed;
-            bottom: env(safe-area-inset-bottom, 20px);
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -85,7 +85,7 @@
         
         .pipi-container {
             position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 20px) + 80px);
+            bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
             left: 50%;
             transform: translateX(-50%);
             width: calc(100% - 30px);
@@ -228,7 +228,7 @@
         
         .chat-messages {
             position: fixed;
-            top: calc(env(safe-area-inset-top, 20px) + 60px);
+            top: calc(env(safe-area-inset-top, 20px) + 80px);
             left: 15px;
             right: 15px;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 140px);
@@ -411,7 +411,7 @@
         
         .user-info {
             position: fixed !important;
-            top: env(safe-area-inset-top, 20px) !important;
+            top: calc(env(safe-area-inset-top, 20px) + 20px) !important;
             right: 15px !important;
             display: flex;
             align-items: center;
@@ -466,7 +466,7 @@
         
         .llm-info {
             position: fixed;
-            top: env(safe-area-inset-top, 20px);
+            top: calc(env(safe-area-inset-top, 20px) + 20px);
             left: 15px;
             display: flex;
             align-items: center;
@@ -769,7 +769,7 @@
         /* 手機版媒體查詢 */
         @media screen and (max-width: 768px) {
             .main-container {
-                padding: 15px 10px;
+                padding: 25px 10px;
             }
             
             .heart-window-container {
@@ -844,7 +844,7 @@
         /* 小屏幕手機 */
         @media screen and (max-width: 480px) {
             .main-container {
-                padding: 10px 5px;
+                padding: 20px 5px;
             }
             
             .heart-window-container {
@@ -892,15 +892,15 @@
             /* iOS Safari */
             .input-container {
                 position: fixed;
-                bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 20px);
             }
             
             .chat-messages {
-                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 120px);
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 140px);
             }
             
             .pipi-container {
-                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 80px);
+                bottom: calc(max(env(safe-area-inset-bottom, 20px), 20px) + 100px);
             }
         }
     </style>
