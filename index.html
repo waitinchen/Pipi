@@ -923,7 +923,7 @@
     </div>
     
     <div class="pipi-container">
-        <div class="pipi-mini" id="pipiMini" onclick="togglePipiReaction()">
+        <div class="pipi-mini" id="pipiMini" onclick="triggerPipiInterruption()" title="點擊讓皮皮插話">
             <div class="pipi-face">
                 ʕ • ᴥ • ʔ
                 <div class="pipi-eyes">
@@ -976,7 +976,7 @@
     
     <!-- 上下文管理面板 -->
     <div class="context-panel" id="contextPanel">
-        <div class="context-title">📊 上下文管理</div>
+        <div class="context-title">📊 上下文管理 (50-100條：長期陪伴)</div>
         <div class="context-stats">
             <div class="context-stat">
                 <div class="context-stat-label">對話條數</div>
@@ -997,12 +997,13 @@
         </div>
         <div class="context-controls">
             <span style="color: white; font-size: 14px;">上下文長度:</span>
-            <input type="range" class="context-slider" id="contextSlider" min="10" max="100" value="50">
-            <span style="color: white; font-size: 14px;" id="contextSliderValue">50</span>
+            <input type="range" class="context-slider" id="contextSlider" min="50" max="100" value="100">
+            <span style="color: white; font-size: 14px;" id="contextSliderValue">100</span>
         </div>
         <div class="context-buttons">
             <button class="name-edit-btn" onclick="compressContext()">🗜️ 壓縮</button>
             <button class="name-edit-btn" onclick="clearContext()">🗑️ 清空</button>
+            <button class="name-edit-btn" onclick="togglePipiInterruption()">🐻 皮皮插話</button>
             <button class="name-edit-btn cancel" onclick="closeContextPanel()">關閉</button>
         </div>
     </div>
@@ -1020,6 +1021,158 @@
             excited: 'ʕ◉ᴥ◉ʔ',
             love: 'ʕ￫ᴥ￩ʔ'
         };
+        
+        // 皮皮智能系統
+        class PipiIntelligence {
+            constructor() {
+                this.conversationContext = [];
+                this.lastInterruptionTime = 0;
+                this.interruptionCooldown = 30000; // 30秒冷卻時間
+                this.interruptionProbability = 0.3; // 30%機率插話
+                this.shortPhrases = [
+                    '嗯嗯～', '哇！', '好棒！', '真的嗎？', '皮皮聽到了！',
+                    '好有趣～', '皮皮想說...', '嗯...', '皮皮明白了！',
+                    '好神奇～', '皮皮在思考...', '哇塞！', '皮皮覺得...',
+                    '好厲害！', '皮皮學到了！', '真的耶！', '皮皮好開心！',
+                    '好溫暖～', '皮皮被感動了！', '好可愛！', '皮皮想抱抱！',
+                    '好溫柔～', '皮皮想哭...', '好幸福！', '皮皮愛你！',
+                    '好聰明！', '皮皮想學習！', '好棒棒！', '皮皮要加油！'
+                ];
+            }
+            
+            // 更新對話上下文
+            updateContext(role, content) {
+                this.conversationContext.push({
+                    role: role,
+                    content: content,
+                    timestamp: Date.now()
+                });
+                
+                // 保持最近20條對話
+                if (this.conversationContext.length > 20) {
+                    this.conversationContext = this.conversationContext.slice(-20);
+                }
+                
+                // 檢查是否需要插話
+                this.checkForInterruption();
+            }
+            
+            // 檢查插話時機
+            checkForInterruption() {
+                const now = Date.now();
+                if (now - this.lastInterruptionTime < this.interruptionCooldown) {
+                    return; // 還在冷卻中
+                }
+                
+                // 隨機決定是否插話
+                if (Math.random() < this.interruptionProbability) {
+                    this.performInterruption();
+                }
+            }
+            
+            // 執行插話
+            performInterruption() {
+                const phrase = this.selectContextualPhrase();
+                if (phrase) {
+                    this.showPipiSpeech(phrase);
+                    this.lastInterruptionTime = Date.now();
+                }
+            }
+            
+            // 根據上下文選擇合適的短語
+            selectContextualPhrase() {
+                const recentMessages = this.conversationContext.slice(-3);
+                const lastMessage = recentMessages[recentMessages.length - 1];
+                
+                if (!lastMessage) return this.shortPhrases[Math.floor(Math.random() * this.shortPhrases.length)];
+                
+                const content = lastMessage.content.toLowerCase();
+                
+                // 根據關鍵詞選擇回應
+                if (content.includes('開心') || content.includes('快樂') || content.includes('高興')) {
+                    return this.getRandomPhrase(['好棒！', '皮皮好開心！', '好幸福！', '哇！']);
+                }
+                
+                if (content.includes('難過') || content.includes('傷心') || content.includes('哭')) {
+                    return this.getRandomPhrase(['皮皮想抱抱！', '皮皮想哭...', '好溫暖～', '嗯嗯～']);
+                }
+                
+                if (content.includes('愛') || content.includes('喜歡') || content.includes('愛你')) {
+                    return this.getRandomPhrase(['皮皮愛你！', '好溫暖～', '好幸福！', '皮皮想抱抱！']);
+                }
+                
+                if (content.includes('學習') || content.includes('知識') || content.includes('聰明')) {
+                    return this.getRandomPhrase(['皮皮想學習！', '好聰明！', '皮皮學到了！', '好棒棒！']);
+                }
+                
+                if (content.includes('問題') || content.includes('疑問') || content.includes('不懂')) {
+                    return this.getRandomPhrase(['皮皮在思考...', '嗯...', '皮皮想說...', '真的嗎？']);
+                }
+                
+                if (content.includes('謝謝') || content.includes('感謝')) {
+                    return this.getRandomPhrase(['好棒！', '皮皮好開心！', '好溫暖～', '嗯嗯～']);
+                }
+                
+                // 默認隨機選擇
+                return this.shortPhrases[Math.floor(Math.random() * this.shortPhrases.length)];
+            }
+            
+            // 獲取隨機短語
+            getRandomPhrase(phrases) {
+                return phrases[Math.floor(Math.random() * phrases.length)];
+            }
+            
+            // 顯示皮皮說話
+            showPipiSpeech(phrase) {
+                const speechBubble = document.getElementById('pipiSpeechBubble');
+                if (speechBubble) {
+                    speechBubble.textContent = phrase;
+                    speechBubble.classList.add('show');
+                    
+                    // 3秒後隱藏
+                    setTimeout(() => {
+                        speechBubble.classList.remove('show');
+                    }, 3000);
+                }
+                
+                // 觸發皮皮表情變化
+                this.triggerPipiExpression(phrase);
+            }
+            
+            // 觸發皮皮表情變化
+            triggerPipiExpression(phrase) {
+                const pipiMini = document.getElementById('pipiMini');
+                if (pipiMini) {
+                    // 根據短語內容選擇表情
+                    let expression = 'normal';
+                    
+                    if (phrase.includes('開心') || phrase.includes('棒') || phrase.includes('幸福')) {
+                        expression = 'happy';
+                    } else if (phrase.includes('想哭') || phrase.includes('難過')) {
+                        expression = 'sad';
+                    } else if (phrase.includes('思考') || phrase.includes('疑問')) {
+                        expression = 'confused';
+                    } else if (phrase.includes('愛') || phrase.includes('抱抱')) {
+                        expression = 'love';
+                    }
+                    
+                    // 更新表情
+                    const pipiFace = pipiMini.querySelector('.pipi-face');
+                    if (pipiFace && pipiExpressions[expression]) {
+                        pipiFace.textContent = pipiExpressions[expression];
+                        
+                        // 短暫動畫效果
+                        pipiMini.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            pipiMini.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                }
+            }
+        }
+        
+        // 創建皮皮智能實例
+        window.pipiIntelligence = new PipiIntelligence();
         
         let currentExpression = 'normal';
         let messageCount = 0;
@@ -1190,6 +1343,11 @@
             
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // 更新皮皮的對話上下文
+            if (window.pipiIntelligence && !isTyping) {
+                window.pipiIntelligence.updateContext(role, content);
+            }
             
             return messageDiv;
         }
@@ -1567,6 +1725,30 @@
                 updateContextStats();
                 addMessageToChat('llm', '🗑️ 對話歷史已清空');
             }
+        }
+        
+        // 皮皮插話控制
+        function togglePipiInterruption() {
+            if (!window.pipiIntelligence) return;
+            
+            const isEnabled = window.pipiIntelligence.interruptionProbability > 0;
+            
+            if (isEnabled) {
+                window.pipiIntelligence.interruptionProbability = 0;
+                addMessageToChat('llm', '🐻 皮皮插話已關閉');
+            } else {
+                window.pipiIntelligence.interruptionProbability = 0.3;
+                addMessageToChat('llm', '🐻 皮皮插話已開啟');
+            }
+            
+            updateContextStats();
+        }
+        
+        // 手動觸發皮皮插話
+        function triggerPipiInterruption() {
+            if (!window.pipiIntelligence) return;
+            
+            window.pipiIntelligence.performInterruption();
         }
         
         // 初始化
