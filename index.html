@@ -1147,6 +1147,7 @@
                 this.ownerName = '語氣靈'; // 皮皮知道自己的主人
                 this.lastMentionTime = 0; // 最後一次被提及的時間
                 this.mentionCooldown = 3000; // 3秒冷卻時間（已不使用）
+                this.speechTimeout = null; // 說話氣泡隱藏定時器
                 
                 // 已移除罐頭短語，只使用LLM回應
             }
@@ -1421,11 +1422,16 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             showPipiSpeech(phrase) {
                 const speechBubble = document.getElementById('pipiSpeechBubble');
                 if (speechBubble) {
+                    // 清除之前的隱藏定時器
+                    if (this.speechTimeout) {
+                        clearTimeout(this.speechTimeout);
+                    }
+                    
                     speechBubble.textContent = phrase;
                     speechBubble.classList.add('show');
                     
-                    // 3秒後隱藏
-                    setTimeout(() => {
+                    // 設置新的隱藏定時器
+                    this.speechTimeout = setTimeout(() => {
                         speechBubble.classList.remove('show');
                     }, 3000);
                 }
@@ -2179,6 +2185,34 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             window.pipiIntelligence.updateContext('user', '皮皮');
             
             console.log('🐻 皮皮完整流程測試完成');
+        };
+        
+        // 測試皮皮氣泡替換效果（測試用）
+        window.testPipiBubbleReplacement = function() {
+            if (!window.pipiIntelligence) {
+                console.error('🐻 皮皮智能系統未初始化');
+                return;
+            }
+            
+            console.log('🐻 開始測試皮皮氣泡替換效果...');
+            
+            // 第一次說話
+            console.log('🐻 第一次說話: "你好"');
+            window.pipiIntelligence.showPipiSpeech('你好');
+            
+            // 1秒後第二次說話（應該替換第一個氣泡）
+            setTimeout(() => {
+                console.log('🐻 第二次說話: "我是皮皮"');
+                window.pipiIntelligence.showPipiSpeech('我是皮皮');
+            }, 1000);
+            
+            // 2秒後第三次說話（應該替換第二個氣泡）
+            setTimeout(() => {
+                console.log('🐻 第三次說話: "很高興認識你"');
+                window.pipiIntelligence.showPipiSpeech('很高興認識你');
+            }, 2000);
+            
+            console.log('🐻 氣泡替換測試完成，觀察氣泡是否正確替換');
         };
         
         // 直接測試皮皮LLM調用（測試用）
