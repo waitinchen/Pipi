@@ -88,8 +88,7 @@
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
             left: 2%;
-            right: 2%;
-            width: 96%;
+            width: 60px;
             height: 40px;
             pointer-events: none;
             margin: 0;
@@ -104,14 +103,16 @@
             transition: all 0.3s ease;
             pointer-events: auto;
             animation: pipiHorizontalMove 12s ease-in-out infinite;
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: center;
             bottom: 0;
             left: 0;
-            z-index: 1000;
+            z-index: 1001;
             width: 40px;
             height: 40px;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         .pipi-face {
@@ -929,8 +930,9 @@
             }
             
             .pipi-container {
-                margin: 0 2%;
-                width: calc(100% - 4%);
+                left: 2%;
+                width: 60px;
+                margin: 0;
             }
             
             .chat-messages {
@@ -977,8 +979,9 @@
             }
             
             .pipi-container {
-                margin: 0 2%;
-                width: calc(100% - 4%);
+                left: 2%;
+                width: 60px;
+                margin: 0;
             }
             
             .chat-messages {
@@ -2236,6 +2239,37 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             }, 2000);
             
             console.log('🐻 氣泡替換測試完成，觀察氣泡是否正確替換');
+        };
+        
+        // 強制顯示皮皮角色（測試用）
+        window.forceShowPipi = function() {
+            const pipiMini = document.getElementById('pipiMini');
+            const pipiContainer = document.querySelector('.pipi-container');
+            
+            if (pipiMini) {
+                console.log('🐻 強制顯示皮皮角色...');
+                pipiMini.style.display = 'flex';
+                pipiMini.style.visibility = 'visible';
+                pipiMini.style.opacity = '1';
+                pipiMini.style.position = 'absolute';
+                pipiMini.style.bottom = '0';
+                pipiMini.style.left = '0';
+                pipiMini.style.zIndex = '1001';
+                console.log('✅ 皮皮角色已強制顯示');
+                console.log('🐻 皮皮位置:', pipiMini.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮角色元素不存在');
+            }
+            
+            if (pipiContainer) {
+                pipiContainer.style.display = 'block';
+                pipiContainer.style.visibility = 'visible';
+                pipiContainer.style.opacity = '1';
+                console.log('✅ 皮皮容器已強制顯示');
+                console.log('🐻 容器位置:', pipiContainer.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮容器不存在');
+            }
         };
         
         // 直接測試皮皮LLM調用（測試用）
