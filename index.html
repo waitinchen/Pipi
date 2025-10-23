@@ -156,8 +156,11 @@
             padding: 8px 12px;
             border-radius: 15px;
             font-size: 14px;
-            max-width: 200px;
-            word-wrap: break-word;
+            max-width: 300px;
+            min-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             opacity: 0;
             visibility: hidden;
@@ -878,7 +881,11 @@
             .pipi-speech-bubble {
                 font-size: 12px;
                 padding: 6px 10px;
-                max-width: 150px;
+                max-width: 250px;
+                min-width: 150px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             .user-info, .llm-info {
@@ -2277,6 +2284,30 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                 console.log('🐻 容器位置:', pipiContainer.getBoundingClientRect());
             } else {
                 console.error('❌ 皮皮容器不存在');
+            }
+        };
+        
+        // 測試皮皮氣泡寬度（測試用）
+        window.testPipiBubbleWidth = function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 測試皮皮氣泡寬度...');
+                
+                // 測試長文本
+                const longText = '這是一個很長的測試文本，用來檢查皮皮氣泡是否會換行，應該要在一行內顯示，不會被強制換行。';
+                window.pipiIntelligence.showPipiSpeech(longText);
+                
+                // 檢查氣泡樣式
+                const bubble = document.getElementById('pipiSpeechBubble');
+                if (bubble) {
+                    const rect = bubble.getBoundingClientRect();
+                    console.log('🐻 氣泡尺寸:', rect.width, 'x', rect.height);
+                    console.log('🐻 氣泡樣式:', {
+                        maxWidth: getComputedStyle(bubble).maxWidth,
+                        minWidth: getComputedStyle(bubble).minWidth,
+                        whiteSpace: getComputedStyle(bubble).whiteSpace,
+                        overflow: getComputedStyle(bubble).overflow
+                    });
+                }
             }
         };
         
