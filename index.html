@@ -1468,6 +1468,7 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
         
         // 創建皮皮智能實例
         window.pipiIntelligence = new PipiIntelligence();
+        console.log('🐻 皮皮智能系統已初始化');
         
         let currentExpression = 'normal';
         let messageCount = 0;
@@ -1620,7 +1621,7 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                 }
                 
                 // 觸發皮皮反應
-                triggerPipiReaction('message_received');
+                // 已移除舊的皮皮反應，使用新的智能系統
                 
             } catch (error) {
                 console.error('LLM請求失敗:', error);
@@ -1652,22 +1653,7 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             return messageDiv;
         }
         
-        // 皮皮反應
-        function triggerPipiReaction(type) {
-            const pipi = document.getElementById('pipiMini');
-            const bubble = document.getElementById('pipiSpeechBubble');
-            
-            if (type === 'message_received') {
-                pipi.style.transform = 'scale(1.2)';
-                bubble.textContent = '收到消息了！';
-                bubble.style.opacity = '1';
-                
-                setTimeout(() => {
-                    pipi.style.transform = 'scale(1)';
-                    bubble.style.opacity = '0';
-                }, 2000);
-            }
-        }
+        // 已移除舊的皮皮反應函數，使用新的智能系統
         
         // 七弦呼吸律動系統
         class HeartWindowEngine {
@@ -2171,6 +2157,28 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                 console.error('🐻 皮皮智能系統未初始化');
                 return false;
             }
+        };
+        
+        // 測試皮皮完整流程（測試用）
+        window.testPipiComplete = function() {
+            console.log('🐻 開始測試皮皮完整流程...');
+            
+            // 1. 檢查初始化
+            if (!window.pipiIntelligence) {
+                console.error('🐻 皮皮智能系統未初始化');
+                return;
+            }
+            console.log('✅ 皮皮智能系統已初始化');
+            
+            // 2. 測試提及檢測
+            const isMentioned = window.pipiIntelligence.isPipiMentioned('皮皮');
+            console.log(`✅ 提及檢測: ${isMentioned}`);
+            
+            // 3. 模擬用戶消息
+            console.log('🐻 模擬用戶消息: "皮皮"');
+            window.pipiIntelligence.updateContext('user', '皮皮');
+            
+            console.log('🐻 皮皮完整流程測試完成');
         };
         
         // 直接測試皮皮LLM調用（測試用）
