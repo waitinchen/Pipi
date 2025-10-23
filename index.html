@@ -93,6 +93,7 @@
             height: 40px;
             pointer-events: none;
             margin: 0;
+            z-index: 1000;
         }
         
         .pipi-mini {
@@ -109,6 +110,8 @@
             bottom: 0;
             left: 0;
             z-index: 1000;
+            width: 40px;
+            height: 40px;
         }
         
         .pipi-face {
@@ -861,6 +864,8 @@
             
             .pipi-mini {
                 font-size: 1.5em;
+                width: 35px;
+                height: 35px;
             }
             
             .pipi-speech-bubble {
@@ -876,7 +881,7 @@
             
             .user-info {
                 max-width: 120px;
-                right: 4% !important;
+                right: 6% !important;
                 top: calc(env(safe-area-inset-top, 20px) + 15px) !important;
             }
             
@@ -1475,6 +1480,24 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
         // 創建皮皮智能實例
         window.pipiIntelligence = new PipiIntelligence();
         console.log('🐻 皮皮智能系統已初始化');
+        
+        // 檢查皮皮角色是否正確顯示
+        setTimeout(() => {
+            const pipiMini = document.getElementById('pipiMini');
+            const pipiContainer = document.querySelector('.pipi-container');
+            if (pipiMini) {
+                console.log('✅ 皮皮角色元素存在');
+                console.log('🐻 皮皮位置:', pipiMini.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮角色元素不存在');
+            }
+            if (pipiContainer) {
+                console.log('✅ 皮皮容器存在');
+                console.log('🐻 容器位置:', pipiContainer.getBoundingClientRect());
+            } else {
+                console.error('❌ 皮皮容器不存在');
+            }
+        }, 1000);
         
         let currentExpression = 'normal';
         let messageCount = 0;
