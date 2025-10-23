@@ -88,8 +88,8 @@
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 20px) + 100px);
             left: 2%;
-            width: 60px;
-            height: 40px;
+            width: 80px;
+            height: 50px;
             pointer-events: none;
             margin: 0;
             z-index: 1000;
@@ -109,15 +109,20 @@
             bottom: 0;
             left: 0;
             z-index: 1001;
-            width: 40px;
-            height: 40px;
+            width: 80px;
+            height: 50px;
             visibility: visible !important;
             opacity: 1 !important;
+            white-space: nowrap;
+            overflow: hidden;
         }
         
         .pipi-face {
             position: relative;
             display: inline-block;
+            white-space: nowrap;
+            font-size: inherit;
+            line-height: 1;
         }
         
         .pipi-eyes {
@@ -291,19 +296,19 @@
                 transform: translateX(0px); 
             }
             20% { 
-                transform: translateX(calc(100% - 50px)); 
+                transform: translateX(calc(100% - 80px)); 
             }
             40% { 
                 transform: translateX(0px); 
             }
             60% { 
-                transform: translateX(calc(100% - 50px)); 
+                transform: translateX(calc(100% - 80px)); 
             }
             80% { 
                 transform: translateX(0px); 
             }
             100% { 
-                transform: translateX(calc(100% - 50px)); 
+                transform: translateX(calc(100% - 80px)); 
             }
         }
         
@@ -865,8 +870,9 @@
             
             .pipi-mini {
                 font-size: 1.5em;
-                width: 35px;
-                height: 35px;
+                width: 70px;
+                height: 45px;
+                white-space: nowrap;
             }
             
             .pipi-speech-bubble {
@@ -931,7 +937,8 @@
             
             .pipi-container {
                 left: 2%;
-                width: 60px;
+                width: 80px;
+                height: 50px;
                 margin: 0;
             }
             
@@ -980,7 +987,8 @@
             
             .pipi-container {
                 left: 2%;
-                width: 60px;
+                width: 80px;
+                height: 50px;
                 margin: 0;
             }
             
