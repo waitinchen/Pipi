@@ -1449,7 +1449,7 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                     // 設置新的隱藏定時器
                     this.speechTimeout = setTimeout(() => {
                         speechBubble.classList.remove('show');
-                    }, 3000);
+                    }, 9000);
                 }
                 
                 // 觸發皮皮表情變化
@@ -1573,10 +1573,10 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
             
             speechBubble.classList.add('show');
             
-            // 3秒後隱藏氣泡
+            // 9秒後隱藏氣泡
             setTimeout(() => {
                 speechBubble.classList.remove('show');
-            }, 3000);
+            }, 9000);
         }
         
         // 更新氣泡位置，讓它跟隨皮皮
