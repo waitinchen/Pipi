@@ -1159,6 +1159,8 @@
             
             // 更新對話上下文
             updateContext(role, content) {
+                console.log(`🐻 更新上下文: ${role} -> "${content}"`);
+                
                 this.conversationContext.push({
                     role: role,
                     content: content,
@@ -1172,7 +1174,10 @@
                 
                 // 檢查是否被提及
                 if (role === 'user' && this.isPipiMentioned(content)) {
+                    console.log('🐻 檢測到皮皮被提及，觸發反應');
                     this.handlePipiMention();
+                } else {
+                    console.log('🐻 未檢測到皮皮被提及');
                 }
                 
                 // 已移除插話功能，只保留被提及時的反應
@@ -1181,10 +1186,13 @@
             // 檢查是否被提及
             isPipiMentioned(content) {
                 const contentLower = content.toLowerCase();
-                return contentLower.includes('皮皮') || 
+                const isMentioned = contentLower.includes('皮皮') || 
                        contentLower.includes('pipi') || 
                        contentLower.includes('寵物') ||
                        contentLower.includes('小夥伴');
+                
+                console.log(`🐻 檢查提及: "${content}" -> ${isMentioned}`);
+                return isMentioned;
             }
             
             // 處理被提及的反應
@@ -1193,12 +1201,16 @@
                 const timeSinceLastMention = now - this.lastMentionTime;
                 
                 console.log(`🐻 皮皮被提及，距離上次: ${timeSinceLastMention}ms`);
+                console.log('🐻 皮皮開始反應！');
                 
                 // 移除冷卻限制，每次叫皮皮都有反應
                 this.lastMentionTime = now;
-                console.log('🐻 皮皮開始反應！');
                 
-                // 只使用LLM回應，不使用罐頭回應
+                // 先顯示一個簡單的反應，確保用戶看到皮皮有反應
+                this.showPipiSpeech('...');
+                this.triggerPipiExpression('happy');
+                
+                // 然後調用LLM獲取更好的回應
                 this.performLLMSpeech();
             }
             
@@ -1207,6 +1219,8 @@
             // 執行LLM調用說話
             async performLLMSpeech() {
                 console.log('🐻 皮皮開始LLM調用...');
+                console.log('🐻 皮皮當前上下文:', this.conversationContext);
+                
                 try {
                     const response = await this.callPipiLLM();
                     console.log('🐻 皮皮LLM原始回應:', response);
@@ -2133,6 +2147,29 @@ ${this.conversationContext.slice(-3).map(msg => `${msg.role}: ${msg.content}`).j
                         window.pipiIntelligence.handlePipiMention();
                     }, i * 1000); // 每秒一次
                 }
+            }
+        };
+        
+        // 強制觸發皮皮反應（測試用）
+        window.forcePipiReaction = function() {
+            if (window.pipiIntelligence) {
+                console.log('🐻 強制觸發皮皮反應');
+                window.pipiIntelligence.handlePipiMention();
+            } else {
+                console.error('🐻 皮皮智能系統未初始化');
+            }
+        };
+        
+        // 測試皮皮提及檢測（測試用）
+        window.testPipiMentionDetection = function(text = '皮皮') {
+            if (window.pipiIntelligence) {
+                console.log(`🐻 測試提及檢測: "${text}"`);
+                const isMentioned = window.pipiIntelligence.isPipiMentioned(text);
+                console.log(`🐻 檢測結果: ${isMentioned}`);
+                return isMentioned;
+            } else {
+                console.error('🐻 皮皮智能系統未初始化');
+                return false;
             }
         };
         
